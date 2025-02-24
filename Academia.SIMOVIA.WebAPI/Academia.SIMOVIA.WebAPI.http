@@ -1,0 +1,6 @@
+@Academia.SIMOVIA.WebAPI_HostAddress = http://localhost:5241
+
+GET {{Academia.SIMOVIA.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,66 @@
+using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase;
+using Microsoft.EntityFrameworkCore;
+using Farsiman.Extensions.Configuration;
+using Academia.SIMOVIA.WebAPI._Features.Acceso;
+using Academia.SIMOVIA.WebAPI._Features.General;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddControllers();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigin",
+        corsBuilder =>
+        {
+            if (builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Staging"))
+            {
+                corsBuilder
+                .SetIsOriginAllowed(_ => true)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+            }
+            else
+            {
+                corsBuilder
+                .WithOrigins("https://*.grupofarsiman.com", "https://*.grupofarsiman.io")
+                .SetIsOriginAllowedToAllowWildcardSubdomains()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+            }
+        });
+});
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<SIMOVIAContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionStringFromENV("SIMOVIA_GFS")
+            ));
+
+// Servicios de Aplicación
+builder.Services.AddTransient<AccesoService>();
+builder.Services.AddTransient<GeneralService>();
+
+builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseCors("AllowSpecificOrigin");
+
+app.UseAuthorization();
+
+app.UseAuthentication();
+
+app.MapControllers();
+
+app.Run();

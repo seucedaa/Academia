@@ -1,0 +1,40 @@
+﻿{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iisExpress": {
+      "applicationUrl": "http://localhost:10937",
+      "sslPort": 0
+    }
+  },
+  "profiles": {
+    "Dev": {
+      "commandName": "IISExpress",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5241",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CODIGO_PAIS": "HN",
+        "FS_SQL_SIMOVIA_SERVER": "192.168.1.33\\academiagfs,49194",
+        "FS_SQL_SIMOVIA_DBNAME": "SIMOVIA",
+        "FS_SQL_SIMOVIA_USER": "AcademiaDEV",
+        "FS_SQL_SIMOVIA_PASSWORD": "Academia.1"
+        //"FS_SQL_SIMOVIA_SERVER": "localhost,1433",
+        //"FS_SQL_SIMOVIA_DBNAME": "SIMOVIA",
+        //"FS_SQL_SIMOVIA_USER": "sa",
+        //"FS_SQL_SIMOVIA_PASSWORD": "YourStrong!Passw0rd"
+      }
+    },
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "weatherforecast",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
