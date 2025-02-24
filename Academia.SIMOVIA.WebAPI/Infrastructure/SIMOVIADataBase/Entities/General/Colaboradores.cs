@@ -17,7 +17,6 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
             Estado = true;
 
             Usuarios = new HashSet<Usuarios>();
-            Sucursales = new HashSet<Sucursales>();
             ColaboradoresPorSucursal = new HashSet<ColaboradoresPorSucursal>();
             ViajesDetalle = new HashSet<ViajesDetalle>();
         }
@@ -48,7 +47,6 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
         public virtual Usuarios UsuarioCreacion { get; set; }
         public virtual Usuarios UsuarioModificacion { get; set; }
         public virtual ICollection<Usuarios> Usuarios { get; set; }
-        public virtual ICollection<Sucursales> Sucursales { get; set; }
         public virtual ICollection<ColaboradoresPorSucursal> ColaboradoresPorSucursal { get; set; }
         public virtual ICollection<ViajesDetalle> ViajesDetalle { get; set; }
     }

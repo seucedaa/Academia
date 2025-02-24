@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Farsiman.Extensions.Configuration;
 using Academia.SIMOVIA.WebAPI._Features.Acceso;
 using Academia.SIMOVIA.WebAPI._Features.General;
+using Academia.SIMOVIA.WebAPI._Features.Viaje;
+using Academia.SIMOVIA.WebAPI.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,7 +45,13 @@ builder.Services.AddDbContext<SIMOVIAContext>(o => o.UseSqlServer(builder.Config
 
 // Servicios de Aplicación
 builder.Services.AddTransient<AccesoService>();
+builder.Services.AddTransient<AccesoDomainService>();
 builder.Services.AddTransient<GeneralService>();
+builder.Services.AddTransient<GeneralDomainService>();
+builder.Services.AddTransient<ViajeService>();
+builder.Services.AddTransient<ViajeDomainService>();
+
+builder.Services.AddScoped<UnitOfWorkBuilder>();
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 

@@ -21,6 +21,14 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
         }
 
+        [HttpGet("ObtenerSucursalesCercanas")]
+        public async Task<IActionResult> ObtenerSucursalesCercanas([FromQuery] double latitud, [FromQuery] double longitud)
+        {
+            var resultado = await _viajeService.ObtenerSucursalesCercanas(latitud, longitud);
+            return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
+        }
+
+
         [HttpGet("ObtenerSucursal/{id}")]
         public async Task<IActionResult> ObtenerSucursal(int id)
         {

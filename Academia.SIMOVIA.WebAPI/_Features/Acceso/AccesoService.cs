@@ -1,5 +1,6 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
+using Academia.SIMOVIA.WebAPI.Infrastructure;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Utilities;
@@ -14,19 +15,23 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 {
     public class AccesoService
     {
-        private readonly SIMOVIAContext _context;
         private readonly IMapper _mapper;
-        public AccesoService(SIMOVIAContext simovia, IMapper mapper)
+        private readonly AccesoDomainService _accesoDomainService;
+        private readonly UnitOfWorkBuilder _unitOfWorkBuilder;
+        public AccesoService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, AccesoDomainService accesoDomainService)
         {
-            _context = simovia;
             _mapper = mapper;
+            _accesoDomainService = accesoDomainService;
+            _unitOfWorkBuilder = unitOfWorkBuilder;
         }
         #region Roles
         public async Task<Response<List<RolesDto>>> ObtenerRoles()
         {
             try
             {
-                var listado = await _context.Roles
+                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+
+                var listado = await unitOfWork.Repository<Roles>().AsQueryable()
                     .Where(r => r.Estado) 
                     .ToListAsync();
 
@@ -63,7 +68,8 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
         {
             try
             {
-                var listado = await _context.Usuarios
+                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+                var listado = await unitOfWork.Repository<Usuarios>().AsQueryable()
                     .Where(u => u.Estado) 
                     .ToListAsync();
 
@@ -93,44 +99,11 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
             }
         }
 
-
-        private async Task<Response<string>> ValidarInicioSesion(InicioSesionDto login)
-        {
-            if (string.IsNullOrEmpty(login.Usuario) || string.IsNullOrEmpty(login.Clave))
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ08 };
-            }
-
-            var usuario = await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Usuario == login.Usuario);
-
-            if (usuario == null)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ01_Credenciales_Incorrectas };
-            }
-
-            byte[] claveCifrada;
-            using (SHA512 sha512 = SHA512.Create())
-            {
-                claveCifrada = sha512.ComputeHash(Encoding.UTF8.GetBytes(login.Clave));
-            }
-
-            if (!usuario.Clave.SequenceEqual(claveCifrada))
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ01_Credenciales_Incorrectas };
-            }
-
-            if (!usuario.Estado)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ03.Replace("@Entidad", "Usuario") };
-            }
-
-            return new Response<string> { Exitoso = true };
-        }
-
         private async Task<SesionUsuarioDto> ObtenerDatosSesionUsuario(string usuarioNombre)
         {
-            var usuario = await _context.Usuarios
+            await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+
+            var usuario = await unitOfWork.Repository<Usuarios>().AsQueryable()
                 .Include(u => u.Rol)
                 .Include(u => u.Colaborador)
                 .ThenInclude(c => c.Cargo)
@@ -146,7 +119,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 
         public async Task<Response<SesionUsuarioDto>> InicioSesion(InicioSesionDto login)
         {
-            var resultadoValidacion = await ValidarInicioSesion(login);
+            var resultadoValidacion = await _accesoDomainService.ValidarInicioSesion(login);
             if (!resultadoValidacion.Exitoso)
             {
                 return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = resultadoValidacion.Mensaje };
@@ -165,9 +138,11 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 
         private async Task<List<PantallaDto>> ObtenerPantallasPermitidas(Usuarios usuario)
         {
-            return await _context.Pantallas
+            await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+
+            return await unitOfWork.Repository<Pantallas>().AsQueryable()
                 .Where(p => usuario.EsAdministrador || usuario.Colaborador.Cargo.CargoId == 1 ||
-                            _context.PantallasPorRoles.Any(ppr => ppr.RolId == usuario.RolId && ppr.PantallaId == p.PantallaId && p.Estado))
+                            unitOfWork.Repository<PantallasPorRoles>().AsQueryable().Any(ppr => ppr.RolId == usuario.RolId && ppr.PantallaId == p.PantallaId && p.Estado))
                 .Select(p => new PantallaDto
                 {
                     PantallaId = p.PantallaId,
@@ -179,13 +154,15 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 
         private async Task<Response<string>> ValidarRegistrarDatosUsuario(UsuarioDto usuarioDto)
         {
+            await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+
             if (string.IsNullOrEmpty(usuarioDto.Usuario) || string.IsNullOrEmpty(usuarioDto.Clave) ||
                 usuarioDto.ColaboradorId <= 0 || usuarioDto.RolId <= 0 || usuarioDto.UsuarioGuardaId <= 0)
             {
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ09 };
             }
 
-            bool existe = await _context.Usuarios.AnyAsync(u => u.Usuario == usuarioDto.Usuario);
+            bool existe = await unitOfWork.Repository<Usuarios>().AsQueryable().AnyAsync(u => u.Usuario == usuarioDto.Usuario);
             if (existe)
             {
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "usuario") };
@@ -200,8 +177,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 
             try
             {
-                _context.Usuarios.Add(nuevoUsuario);
-                await _context.SaveChangesAsync();
+                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+
+                unitOfWork.Repository<Usuarios>().Add(nuevoUsuario);
+                await unitOfWork.SaveChangesAsync();
                 return new Response<string> { Exitoso = true, Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Usuario") };
             }
             catch (Exception)

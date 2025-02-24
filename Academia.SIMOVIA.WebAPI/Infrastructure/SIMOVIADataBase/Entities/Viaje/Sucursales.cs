@@ -32,7 +32,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         public virtual Ciudades Ciudad { get; set; }
         public virtual Usuarios UsuarioCreacion { get; set; }
         public virtual Usuarios UsuarioModificacion { get; set; }
-        public virtual ICollection<ColaboradoresPorSucursal> ColaboradoresPorSucursal { get; set; }
+        public ICollection<ColaboradoresPorSucursal> ColaboradoresPorSucursal { get; set; }
         public virtual ICollection<ViajesEncabezado> Viajes { get; set; }
     }
 }

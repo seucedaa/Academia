@@ -36,6 +36,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
             CreateMap<CargosDto, Cargos>().ReverseMap();
             CreateMap<EstadosCivilesDto, EstadosCiviles>().ReverseMap();
             CreateMap<CiudadesDto, Ciudades>().ReverseMap();
+
             CreateMap<Colaboradores, ColaboradoresDto>()
                 .ForMember(dest => dest.EstadoCivilDescripcion, opt => opt.MapFrom(src => src.EstadoCivil.Descripcion))
                 .ForMember(dest => dest.CargoDescripcion, opt => opt.MapFrom(src => src.Cargo.Descripcion))
@@ -53,8 +54,15 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
             #endregion
 
             #region Viaje
-            CreateMap<SucursalesDto, Sucursales>().ReverseMap();
-
+            CreateMap<Sucursales, SucursalesDto>()
+                .ForMember(dest => dest.CiudadDescripcion, opt => opt.MapFrom(src => src.Ciudad.Descripcion))
+                .ReverseMap();
+            CreateMap<SucursalDto, Sucursales>()
+             .ForMember(dest => dest.UsuarioCreacionId, opt => opt.MapFrom((src, dest) => src.SucursalId == 0 ? src.UsuarioGuardaId : dest.UsuarioCreacionId))
+             .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) => src.SucursalId == 0 ? DateTime.UtcNow : dest.FechaCreacion))
+             .ForMember(dest => dest.UsuarioModificacionId, opt => opt.MapFrom(src => src.SucursalId != 0 ? src.UsuarioGuardaId : (int?)null))
+             .ForMember(dest => dest.FechaModificacion, opt => opt.MapFrom(src => src.SucursalId != 0 ? DateTime.UtcNow : (DateTime?)null))
+             .ReverseMap();
             #endregion
         }
 

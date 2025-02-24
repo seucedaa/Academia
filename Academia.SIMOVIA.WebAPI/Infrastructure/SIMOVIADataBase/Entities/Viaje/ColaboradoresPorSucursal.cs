@@ -10,6 +10,6 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         public int SucursalId { get; set; }
 
         public virtual Colaboradores Colaborador { get; set; }
-        public virtual Sucursales Sucursal { get; set; }
+        public Sucursales Sucursal { get; set; }
     }
 }

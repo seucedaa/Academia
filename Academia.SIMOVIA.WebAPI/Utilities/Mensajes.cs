@@ -15,6 +15,7 @@
         public const string MSJ11 = "No se puede eliminar el @Entidad porque está en uso.";
         public const string MSJ12 = "@Entidad eliminado exitosamente.";
         public const string MSJ13 = "Error al obtener los @entidad. Intente nuevamente.";
-
+        public const string MSJ14 = "La @Campo ya existe.";
+        public const string Sin_Registros = "No hay @Entidad disponibles.";
     }
 }
