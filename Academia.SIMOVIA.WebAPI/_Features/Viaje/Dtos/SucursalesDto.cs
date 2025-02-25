@@ -9,5 +9,6 @@
         public decimal Latitud { get; set; }
         public decimal Longitud { get; set; }
         public string CiudadDescripcion { get; set; }
+        public double DistanciaKm { get; set; }
     }
 }

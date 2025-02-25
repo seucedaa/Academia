@@ -1,13 +1,12 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
+﻿using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
 using Academia.SIMOVIA.WebAPI.Infrastructure;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
 using Academia.SIMOVIA.WebAPI.Utilities;
 using AutoMapper;
+using Farsiman.Infraestructure.Core.Entity.Standard;
 using Microsoft.EntityFrameworkCore;
 
 namespace Academia.SIMOVIA.WebAPI._Features.General
@@ -15,6 +14,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
     public class GeneralService
     {
         private readonly UnitOfWorkBuilder _unitOfWorkBuilder;
+        private readonly Farsiman.Domain.Core.Standard.Repositories.IUnitOfWork _unitOfWork;
         private readonly GeneralDomainService _generalDomainService;
         private readonly IMapper _mapper;
         public GeneralService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, GeneralDomainService generalDomainService)
@@ -22,15 +22,15 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             _unitOfWorkBuilder = unitOfWorkBuilder;
             _mapper = mapper;
             _generalDomainService = generalDomainService;
+            _unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
         }
         #region Cargos
         public async Task<Response<List<CargosDto>>> ObtenerCargos()
         {
             try
             {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
 
-                var listado = await unitOfWork.Repository<Cargos>().AsQueryable()
+                var listado = await _unitOfWork.Repository<Cargos>().AsQueryable()
                     .Where(c => c.Estado)
                     .ToListAsync();
 
@@ -67,9 +67,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
         {
             try
             {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-                var listado = await unitOfWork.Repository<EstadosCiviles>().AsQueryable()
+                var listado = await _unitOfWork.Repository<EstadosCiviles>().AsQueryable()
                     .Where(c => c.Estado)
                     .ToListAsync();
 
@@ -106,9 +104,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
         {
             try
             {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-                var listado = await unitOfWork.Repository<Ciudades>().AsQueryable()
+                var listado = await _unitOfWork.Repository<Ciudades>().AsQueryable()
                     .ToListAsync();
 
                 var ciudadesDto = _mapper.Map<List<CiudadesDto>>(listado);
@@ -144,9 +140,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
         {
             try
             {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-                var listado = await unitOfWork.Repository<Colaboradores>().AsQueryable()
+                var listado = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
                  .Where(c => c.Estado)
                  .Include(c => c.EstadoCivil) 
                  .Include(c => c.Cargo)       
@@ -183,9 +177,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
         {
             try
             {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-                var colaborador = await unitOfWork.Repository<Colaboradores>().AsQueryable()
+                var colaborador = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
                     .Where(c => c.ColaboradorId == id)
                     .Include(c => c.EstadoCivil)
                     .Include(c => c.Cargo)
@@ -226,37 +218,59 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 };
             }
         }
-
-        
-
-        private async Task<Response<int>> GuardarColaborador(ColaboradorDto colaboradorDto)
-        {
-            var nuevoColaborador = _mapper.Map<Colaboradores>(colaboradorDto);
-
-            try
-            {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-                unitOfWork.Repository<Colaboradores>().Add(nuevoColaborador);
-                await unitOfWork.SaveChangesAsync();
-
-                return new Response<int> { Exitoso = true, Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Colaborador"), Data = nuevoColaborador.ColaboradorId };
-            }
-            catch (Exception)
-            {
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador") };
-            }
-        }
-
         public async Task<Response<int>> RegistrarColaborador(ColaboradorDto colaboradorDto)
         {
+            bool dniExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI);
+            if (dniExiste)
+            {
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "DNI") };
+            }
+
+            bool correoExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico);
+            if (correoExiste)
+            {
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "correo electrónico") };
+            }
+
             var validacion = await _generalDomainService.ValidarRegistrarDatosColaborador(colaboradorDto);
             if (!validacion.Exitoso)
             {
                 return validacion;
             }
 
-            return await GuardarColaborador(colaboradorDto);
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                var nuevoColaborador = _mapper.Map<Colaboradores>(colaboradorDto);
+                _unitOfWork.Repository<Colaboradores>().Add(nuevoColaborador);
+                await _unitOfWork.SaveChangesAsync();
+
+                int colaboradorId = nuevoColaborador.ColaboradorId;
+
+                var colaboradorSucursales = _mapper.Map<List<ColaboradoresPorSucursal>>(colaboradorDto.Sucursales);
+                colaboradorSucursales.ForEach(cs => cs.ColaboradorId = colaboradorId);
+
+
+                _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(colaboradorSucursales);
+                await _unitOfWork.SaveChangesAsync();
+
+                _unitOfWork.CommitAsync();
+
+                return new Response<int>
+                {
+                    Exitoso = true,
+                    Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Colaborador"),
+                };
+            }
+            catch (Exception)
+            {
+                _unitOfWork.RollBackAsync();
+                return new Response<int>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador")
+                };
+            }
         }
         public async Task<Response<string>> EditarColaborador(ColaboradorDto colaboradorDto)
         {
@@ -271,8 +285,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 
         private async Task<Response<string>> ValidarEditarColaborador(ColaboradorDto colaboradorDto)
         {
-            await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
             var camposObligatorios = new List<(string Campo, bool EsValido)>
             {
                 ("Colaborador Id", colaboradorDto.ColaboradorId > 0),
@@ -296,13 +308,13 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ09.Replace("@Campo", campoFaltante.Campo) };
             }
 
-            bool dniExiste = await unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI && c.ColaboradorId != colaboradorDto.ColaboradorId);
+            bool dniExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI && c.ColaboradorId != colaboradorDto.ColaboradorId);
             if (dniExiste)
             {
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "DNI") };
             }
 
-            bool correoExiste = await unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico && c.ColaboradorId != colaboradorDto.ColaboradorId);
+            bool correoExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico && c.ColaboradorId != colaboradorDto.ColaboradorId);
             if (correoExiste)
             {
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "Correo Electrónico") };
@@ -316,9 +328,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
         {
             try
             {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-                var colaborador = await unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorDto.ColaboradorId);
+                var colaborador = await _unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorDto.ColaboradorId);
                 if (colaborador == null)
                 {
                     return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ10.Replace("@Entidad", "colaborador") }; 
@@ -329,7 +339,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 colaborador.FechaModificacion = DateTime.Now;
                 colaborador.UsuarioModificacionId = 1;
 
-                await unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 return new Response<string> { Exitoso = true, Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Colaborador") }; 
             }
@@ -341,16 +351,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 
         public async Task<Response<string>> ValidarColaboradorParaEliminar(int colaboradorId)
         {
-            await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-            var colaborador = await unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorId);
+            var colaborador = await _unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorId);
             if (colaborador == null)
             {
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ10.Replace("@Entidad", "colaborador") };
             }
 
-            bool estaEnUso = await unitOfWork.Repository<Usuarios>().AsQueryable().AnyAsync(u => u.ColaboradorId == colaboradorId);
-            bool estaEnUsoSucursal = await unitOfWork.Repository<ColaboradoresPorSucursal>().AsQueryable().AnyAsync(u => u.ColaboradorId == colaboradorId);
+            bool estaEnUso = await _unitOfWork.Repository<Usuarios>().AsQueryable().AnyAsync(u => u.ColaboradorId == colaboradorId);
+            bool estaEnUsoSucursal = await _unitOfWork.Repository<ColaboradoresPorSucursal>().AsQueryable().AnyAsync(u => u.ColaboradorId == colaboradorId);
             if (estaEnUso || estaEnUsoSucursal)
             {
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ11.Replace("@Entidad", "colaborador") };
@@ -369,12 +377,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 
             try
             {
-                await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
-
-                var colaborador = await unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorId);
+                var colaborador = await _unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorId);
                 colaborador.Estado = false;
 
-                await unitOfWork.SaveChangesAsync();
+                await _unitOfWork.SaveChangesAsync();
 
                 return new Response<string> { Exitoso = true, Mensaje = Mensajes.MSJ12.Replace("@Entidad", "Colaborador desactivado") };
             }

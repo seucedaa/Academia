@@ -17,5 +17,11 @@
         public int CargoId { get; set; }
         public int CiudadId { get; set; }
         public int UsuarioGuardaId { get; set; }
+        public List<ColaboradorPorSucursalDto> Sucursales { get; set; }
+    }
+    public class ColaboradorPorSucursalDto
+    {
+        public int SucursalId { get; set; }
+        public decimal DistanciaKm { get; set; }
     }
 }

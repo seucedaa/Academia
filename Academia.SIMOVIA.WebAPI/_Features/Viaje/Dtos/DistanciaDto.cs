@@ -2,7 +2,7 @@
 {
     public class DistanciaDto
     {
-        public string Texto { get; set; }
-        public int Valor { get; set; }
+        public string text { get; set; }
+        public int value { get; set; }
     }
 }

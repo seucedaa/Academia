@@ -11,15 +11,9 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 {
     public class GeneralDomainService
     {
-        private readonly UnitOfWorkBuilder _unitOfWorkBuilder;
-        public GeneralDomainService(UnitOfWorkBuilder unitOfWorkBuilder)
-        {
-            _unitOfWorkBuilder = unitOfWorkBuilder;
-        }
 
         public async Task<Response<int>> ValidarRegistrarDatosColaborador(ColaboradorDto colaboradorDto)
         {
-            await using var unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
             
             var camposObligatorios = new List<(string Campo, bool EsValido)>
             {
@@ -36,25 +30,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 ("Estado Civil", colaboradorDto.EstadoCivilId > 0),
                 ("Cargo", colaboradorDto.CargoId > 0),
                 ("Ciudad", colaboradorDto.CiudadId > 0),
-                ("Usuario Creacion", colaboradorDto.UsuarioGuardaId > 0)
+                ("Usuario Creacion", colaboradorDto.UsuarioGuardaId > 0),
+                ("Sucursales", colaboradorDto.Sucursales != null && colaboradorDto.Sucursales.Any())
             };
 
             var campoFaltante = camposObligatorios.FirstOrDefault(c => !c.EsValido);
             if (campoFaltante.Campo != null && !campoFaltante.EsValido)
             {
                 return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ09.Replace("@Campo", campoFaltante.Campo) };
-            }
-
-            bool dniExiste = await unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI);
-            if (dniExiste)
-            {
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "DNI") };
-            }
-
-            bool correoExiste = await unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico);
-            if (correoExiste)
-            {
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "correo electrónico") };
             }
 
             return new Response<int> { Exitoso = true };

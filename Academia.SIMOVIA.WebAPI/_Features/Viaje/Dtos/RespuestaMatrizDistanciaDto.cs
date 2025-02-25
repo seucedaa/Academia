@@ -2,7 +2,7 @@
 {
     public class RespuestaMatrizDistanciaDto
     {
-        public string Estado { get; set; }
-        public List<FilaDto> Filas { get; set; }
+        public string status { get; set; }
+        public List<FilaDto> rows { get; set; }
     }
 }

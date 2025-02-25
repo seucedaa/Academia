@@ -2,7 +2,7 @@
 {
     public class ElementoDto
     {
-        public DistanciaDto Distancia { get; set; }
-        public string Estado { get; set; }
+        public DistanciaDto distance { get; set; }
+        public string status { get; set; }
     }
 }

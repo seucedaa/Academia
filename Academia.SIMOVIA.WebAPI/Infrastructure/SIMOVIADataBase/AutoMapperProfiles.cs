@@ -50,7 +50,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
              .ForMember(dest => dest.UsuarioModificacionId, opt => opt.MapFrom(src => src.ColaboradorId != 0 ? src.UsuarioGuardaId : (int?)null))
              .ForMember(dest => dest.FechaModificacion, opt => opt.MapFrom(src => src.ColaboradorId != 0 ? DateTime.UtcNow : (DateTime?)null)) 
              .ReverseMap();
-
+            CreateMap<ColaboradorPorSucursalDto, ColaboradoresPorSucursal>();
             #endregion
 
             #region Viaje

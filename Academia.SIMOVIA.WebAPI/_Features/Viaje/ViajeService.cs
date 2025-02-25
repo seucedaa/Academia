@@ -12,6 +12,7 @@ using Farsiman.Domain.Core.Standard.Repositories;
 using Farsiman.Infraestructure.Core.Entity.Standard;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using System.Globalization;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 {
@@ -69,49 +70,53 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
         {
             try
             {
-                var sucursales = await _unitOfWork.Repository<Sucursales>().AsQueryable()
+                List<Sucursales> sucursales = await _unitOfWork.Repository<Sucursales>()
+                    .AsQueryable()
                     .Where(c => c.Estado)
                     .Include(c => c.Ciudad)
                     .ToListAsync();
 
                 if (!sucursales.Any())
                 {
-                    return new Response<List<SucursalesDto>> { Exitoso = false, Mensaje = Mensajes.Sin_Registros.Replace("@Entidad", "sucursales") };
+                    return new Response<List<SucursalesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.Sin_Registros.Replace("@Entidad", "sucursales")
+                    };
                 }
 
-                string apiKey = "AIzaSyCXBavP9hXM9SGr4m6GsQdC98rmUqBQUU0"; 
-                string origins = $"{latitud},{longitud}";
-                string destinations = string.Join("|", sucursales.Select(s => $"{s.Latitud},{s.Longitud}"));
+                string apiKey = Environment.GetEnvironmentVariable("API_KEY");
+                string origins = $"{latitud.ToString(CultureInfo.InvariantCulture)},{longitud.ToString(CultureInfo.InvariantCulture)}";
+                string destinations = string.Join("|", sucursales.Select(s =>
+                    $"{s.Latitud.ToString(CultureInfo.InvariantCulture)},{s.Longitud.ToString(CultureInfo.InvariantCulture)}"));
 
                 string url = $"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origins}&destinations={destinations}&key={apiKey}&units=metric";
 
-                using (HttpClient client = new HttpClient())
+                using HttpClient client = new HttpClient();
+                string response = await client.GetStringAsync(url);
+                RespuestaMatrizDistanciaDto googleResponse = JsonConvert.DeserializeObject<RespuestaMatrizDistanciaDto>(response);
+
+                List<SucursalesDto> sucursalesCercanas = sucursales
+                    .Select((sucursal, index) =>
+                    {
+                        ElementoDto elemento = googleResponse.rows[0].elements[index];
+                        return elemento.status == "OK" && elemento.distance != null
+                               ? new { Sucursal = sucursal, DistanciaKm = Math.Round(elemento.distance.value / 1000.0, 1) }
+                               : null;
+                    }).Where(s => s != null && s.DistanciaKm > 0 && s.DistanciaKm <= 50)
+                    .Select(s =>
+                    {
+                        SucursalesDto dto = _mapper.Map<SucursalesDto>(s.Sucursal);
+                        dto.DistanciaKm = s.DistanciaKm;
+                        return dto;
+                    })
+                    .ToList();
+
+                return new Response<List<SucursalesDto>>
                 {
-                    var response = await client.GetStringAsync(url);
-                    var googleResponse = JsonConvert.DeserializeObject<RespuestaMatrizDistanciaDto>(response);
-
-                    if (googleResponse.Estado != "OK")
-                    {
-                        return new Response<List<SucursalesDto>> { Exitoso = false, Mensaje = "Error al consultar Google Maps API." };
-                    }
-
-                    var sucursalesCercanas = new List<SucursalesDto>();
-                    for (int i = 0; i < sucursales.Count; i++)
-                    {
-                        var distancia = googleResponse.Filas[0].Elementos[i].Distancia.Valor / 1000.0;
-
-                        if (distancia > 0 && distancia <= 50)
-                        {
-                            sucursalesCercanas.Add(_mapper.Map<SucursalesDto>(sucursales[i]));
-                        }
-                    }
-
-                    return new Response<List<SucursalesDto>>
-                    {
-                        Exitoso = true,
-                        Data = sucursalesCercanas
-                    };
-                }
+                    Exitoso = true,
+                    Data = sucursalesCercanas
+                };
             }
             catch (Exception)
             {
@@ -122,6 +127,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 };
             }
         }
+
 
         public async Task<Response<SucursalDto>> ObtenerSucursalPorId(int id)
         {
