@@ -18,23 +18,23 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
         public async Task<IActionResult> ObtenerSucursales()
         {
             var resultado = await _viajeService.ObtenerSucursales();
-            return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
         [HttpGet("ObtenerSucursalesCercanas")]
         public async Task<IActionResult> ObtenerSucursalesCercanas([FromQuery] double latitud, [FromQuery] double longitud)
         {
             var resultado = await _viajeService.ObtenerSucursalesCercanas(latitud, longitud);
-            return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
-        }
-
-
-        [HttpGet("ObtenerSucursal/{id}")]
-        public async Task<IActionResult> ObtenerSucursal(int id)
-        {
-            var resultado = await _viajeService.ObtenerSucursalPorId(id);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
+
+        [HttpGet("ObtenerSucursalesPorIds")]
+        public async Task<IActionResult> ObtenerSucursalesPorIds([FromQuery] List<int> sucursalesIds)
+        {
+            var resultado = await _viajeService.ObtenerSucursalesPorIds(sucursalesIds);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
+
 
         [HttpPost("RegistrarSucursal")]
         public async Task<IActionResult> RegistrarSucursal([FromBody] SucursalDto SucursalDto)

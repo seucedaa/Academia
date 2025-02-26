@@ -19,7 +19,7 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
         public async Task<IActionResult> ObtenerRoles()
         {
             var resultado = await _accesoService.ObtenerRoles();
-            return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
     }
 }

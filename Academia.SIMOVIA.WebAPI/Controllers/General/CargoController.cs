@@ -18,7 +18,7 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
         public async Task<IActionResult> ObtenerCargos()
         {
             var resultado = await _generalService.ObtenerCargos();
-            return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
     }
 }

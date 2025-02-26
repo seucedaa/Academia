@@ -11,7 +11,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 {
     public class GeneralDomainService
     {
-
         public async Task<Response<int>> ValidarRegistrarDatosColaborador(ColaboradorDto colaboradorDto)
         {
             

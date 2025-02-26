@@ -1,4 +1,6 @@
-﻿namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
+﻿using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
+
+namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
 {
     public class ColaboradorDto
     {
@@ -19,9 +21,5 @@
         public int UsuarioGuardaId { get; set; }
         public List<ColaboradorPorSucursalDto> Sucursales { get; set; }
     }
-    public class ColaboradorPorSucursalDto
-    {
-        public int SucursalId { get; set; }
-        public decimal DistanciaKm { get; set; }
-    }
+    
 }

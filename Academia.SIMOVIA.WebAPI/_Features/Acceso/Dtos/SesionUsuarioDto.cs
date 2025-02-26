@@ -11,6 +11,7 @@
         public string CorreoElectronico { get; set; }
         public string Telefono { get; set; }
         public List<PantallaDto> Pantallas { get; set; }
+        public List<int> Sucursales { get; set; }
     }
 
     public class PantallaDto

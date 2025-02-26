@@ -1,4 +1,5 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
+using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
 using Academia.SIMOVIA.WebAPI.Infrastructure;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
@@ -218,6 +219,73 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 };
             }
         }
+
+        public async Task<Response<List<ColaboradoresPorSucursalDto>>> ObtenerColaboradoresDisponibles(int? sucursalId, DateTime? fecha)
+        {
+            try
+            {
+                var fechaConsulta = fecha ?? DateTime.Today;
+
+                var colaboradoresEnSucursal = await _unitOfWork.Repository<ColaboradoresPorSucursal>()
+                    .AsQueryable()
+                    .Where(cs => cs.SucursalId == sucursalId)
+                    .Select(cs => new
+                    {
+                        cs.ColaboradorId,
+                        cs.DistanciaKm
+                    })
+                    .ToListAsync();
+
+                if (!colaboradoresEnSucursal.Any() || sucursalId == null)
+                {
+                    return new Response<List<ColaboradoresPorSucursalDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.Sin_Registros.Replace("@Entidad", "colaboradores")
+                    };
+                }
+
+                var colaboradoresEnSucursalIds = colaboradoresEnSucursal.Select(cs => cs.ColaboradorId).ToList();
+
+                var viajesIds = await _unitOfWork.Repository<ViajesEncabezado>()
+                    .AsQueryable()
+                    .Where(v => v.SucursalId == sucursalId && v.FechaHora.Date == fechaConsulta.Date)
+                    .Select(v => v.ViajeEncabezadoId)
+                    .ToListAsync();
+
+                var colaboradoresEnViaje = await _unitOfWork.Repository<ViajesDetalle>()
+                    .AsQueryable()
+                    .Where(vd => viajesIds.Contains(vd.ViajeEncabezadoId))
+                    .Select(vd => vd.ColaboradorId)
+                    .ToListAsync();
+
+                var colaboradoresDisponibles = await _unitOfWork.Repository<Colaboradores>()
+                    .AsQueryable()
+                    .Where(c => colaboradoresEnSucursalIds.Contains(c.ColaboradorId) && !colaboradoresEnViaje.Contains(c.ColaboradorId))
+                    .ToListAsync();
+
+                var distanciasDict = colaboradoresEnSucursal.ToDictionary(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
+
+                var colaboradoresDto = _mapper.Map<List<ColaboradoresPorSucursalDto>>(colaboradoresDisponibles, opt => opt.Items["Distancias"] = distanciasDict);
+
+                return new Response<List<ColaboradoresPorSucursalDto>>
+                {
+                    Exitoso = true,
+                    Data = colaboradoresDto
+                };
+            }
+            catch (Exception)
+            {
+                return new Response<List<ColaboradoresPorSucursalDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.MSJ06
+                };
+            }
+        }
+
+
+
         public async Task<Response<int>> RegistrarColaborador(ColaboradorDto colaboradorDto)
         {
             bool dniExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI);
@@ -243,7 +311,16 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             {
                 var nuevoColaborador = _mapper.Map<Colaboradores>(colaboradorDto);
                 _unitOfWork.Repository<Colaboradores>().Add(nuevoColaborador);
-                await _unitOfWork.SaveChangesAsync();
+
+                if (!await _unitOfWork.SaveChangesAsync()) 
+                {
+                    await _unitOfWork.RollBackAsync();
+                    return new Response<int>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador")
+                    };
+                }
 
                 int colaboradorId = nuevoColaborador.ColaboradorId;
 
@@ -252,7 +329,11 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 
 
                 _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(colaboradorSucursales);
-                await _unitOfWork.SaveChangesAsync();
+                if (!await _unitOfWork.SaveChangesAsync()) 
+                {
+                    await _unitOfWork.RollBackAsync();
+                    return new Response<int>{ Exitoso = false, Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador")};
+                }
 
                 _unitOfWork.CommitAsync();
 

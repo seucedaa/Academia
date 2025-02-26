@@ -10,12 +10,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 {
     public class ViajeDomainService
     {
-        private readonly UnitOfWorkBuilder _unitOfWorkBuilder;
-
-        public ViajeDomainService(UnitOfWorkBuilder unitOfWorkBuilder)
-        {
-            _unitOfWorkBuilder = unitOfWorkBuilder;
-        }
 
         public async Task<Response<int>> ValidarRegistrarDatosSucursal(SucursalDto sucursalDto)
         {

@@ -3,6 +3,7 @@ using Academia.SIMOVIA.WebAPI._Features.Acceso;
 using Academia.SIMOVIA.WebAPI._Features.General;
 using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Academia.SIMOVIA.WebAPI._Features.Viaje;
 
 namespace Academia.SIMOVIA.WebAPI.Controllers.General
 {
@@ -20,7 +21,7 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
         public async Task<IActionResult> ObtenerColaboradores()
         {
             var resultado = await _generalService.ObtenerColaboradores();
-            return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
+            return resultado.Exitoso ? Ok(resultado) :  BadRequest(resultado.Mensaje);
         }
 
         [HttpGet("ObtenerColaborador/{id}")]
@@ -29,6 +30,15 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
             var resultado = await _generalService.ObtenerColaboradorPorId(id);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
+
+        [HttpGet("ObtenerColaboradoresDisponibles")]
+        public async Task<IActionResult> ObtenerColaboradoresDisponibles([FromQuery] int? sucursalId, [FromQuery] DateTime? fecha)
+        {
+            var resultado = await _generalService.ObtenerColaboradoresDisponibles(sucursalId, fecha);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
+
+
 
         [HttpPost("RegistrarColaborador")]
         public async Task<IActionResult> RegistrarColaborador([FromBody] ColaboradorDto colaboradorDto)

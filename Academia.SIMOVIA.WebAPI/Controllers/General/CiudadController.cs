@@ -17,7 +17,7 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
         public async Task<IActionResult> ObtenerCiudades()
         {
             var resultado = await _generalService.ObtenerCiudades();
-            return resultado.Exitoso ? Ok(resultado) : StatusCode(500, resultado.Mensaje);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
     }
 }
