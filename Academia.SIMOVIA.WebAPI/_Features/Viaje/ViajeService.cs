@@ -877,19 +877,37 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
             var nuevaSolicitud = _mapper.Map<Solicitudes>(solicitudDto);
 
+            var horaSolicitud = solicitudDto.FechaViaje.Date.AddHours(solicitudDto.FechaViaje.Hour);
+
+            var viajeExistente = await _unitOfWork.Repository<ViajesEncabezado>()
+                .AsQueryable()
+                .Where(v => v.FechaHora == horaSolicitud && v.SucursalId == solicitudDto.SucursalId)
+                .FirstOrDefaultAsync();
+
+            if (viajeExistente != null)
+            {
+                nuevaSolicitud.ViajeEncabezadoId = viajeExistente.ViajeEncabezadoId;
+                nuevaSolicitud.FechaViaje = viajeExistente.FechaHora;
+            }
+            else
+            {
+                nuevaSolicitud.ViajeEncabezadoId = nuevaSolicitud.ViajeEncabezadoId == 0 ? null : nuevaSolicitud.ViajeEncabezadoId;
+            }
             nuevaSolicitud.EstadoSolicitudId = (int)EstadosSolicitud.Pendiente;
+
             nuevaSolicitud.Fecha = DateTime.Now;
-            nuevaSolicitud.FechaViaje = solicitudDto.FechaViaje;
-            nuevaSolicitud.ViajeEncabezadoId = null;
 
             try
             {
                 _unitOfWork.Repository<Solicitudes>().Add(nuevaSolicitud);
                 if (!await _unitOfWork.SaveChangesAsync())
                 {
-                    return new Response<int> { Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "la").Replace("@entidad", "solicitud") };
+                    return new Response<int>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "la").Replace("@entidad", "solicitud")
+                    };
                 }
-
                 return new Response<int> { Exitoso = true, Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Solicitud") };
             }
             catch (Exception)
@@ -897,8 +915,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<int> { Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "la").Replace("@entidad", "solicitud") };
             }
         }
-
-
         public async Task<Response<int>> ProcesarSolicitud(ProcesarSolicitudDto solicitudDto)
         {
             var solicitud = await _unitOfWork.Repository<Solicitudes>()

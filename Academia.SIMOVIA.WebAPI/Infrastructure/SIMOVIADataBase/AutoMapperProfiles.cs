@@ -87,7 +87,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
             CreateMap<Solicitudes, SolicitudesDto>()
                 .ForMember(dest => dest.Usuario, opt => opt.MapFrom(src => src.Usuario.Usuario))
                 .ForMember(dest => dest.EstadoSolicitud, opt => opt.MapFrom(src => src.EstadoSolicitud.Descripcion))
-                .ForMember(dest => dest.ViajeEncabezado, opt => opt.MapFrom(src => "Viaje " + src.ViajeEncabezado.Sucursal + " - " + src.ViajeEncabezado.FechaHora.ToString("dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture)))
+.ForMember(dest => dest.ViajeEncabezado, opt => opt.MapFrom(src => "Viaje " + src.ViajeEncabezado.Sucursal.Descripcion + " - " +
+    src.ViajeEncabezado.FechaHora.ToString("dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture)))
                 .ForMember(soli => soli.Sucursal, dto =>dto.MapFrom(sucu => sucu.Sucursal.Descripcion))
                 .ForMember(dest => dest.Fecha, opt => opt.MapFrom(src => src.Fecha.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)))
                 .ReverseMap();
