@@ -102,8 +102,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Acceso
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(x => x.SolicitudesModificadas)
-                   .WithOne(s => s.UsuarioModificacion)
-                   .HasForeignKey(s => s.UsuarioModificacionId)
+                   .WithOne(s => s.UsuarioAprobado)
+                   .HasForeignKey(s => s.UsuarioAprobadoId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(x => x.PantallasCreadas)

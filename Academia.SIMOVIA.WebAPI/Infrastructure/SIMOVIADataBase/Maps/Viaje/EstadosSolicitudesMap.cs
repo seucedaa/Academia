@@ -61,8 +61,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje
             #region Relaciones uno a muchos
             builder.HasMany(x => x.Solicitudes)
                    .WithOne(s => s.EstadoSolicitud)
-                   .HasForeignKey(s => s.EstadoSolicitudId)
-                   .OnDelete(DeleteBehavior.Restrict);
+                   .HasForeignKey(s => s.EstadoSolicitudId);
             #endregion
         }
     }

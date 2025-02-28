@@ -29,7 +29,6 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
             .ForMember(dest => dest.RolDescripcion, opt => opt.MapFrom(src => src.Rol.Descripcion))
             .ForMember(dest => dest.NombreColaborador, opt => opt.MapFrom(src => src.Colaborador.Nombres + " " + src.Colaborador.Apellidos))
             .ForMember(dest => dest.CorreoElectronico, opt => opt.MapFrom(src => src.Colaborador.CorreoElectronico))
-            .ForMember(dest => dest.Telefono, opt => opt.MapFrom(src => src.Colaborador.Telefono))
             .ForMember(dest => dest.Sucursales, opt => opt.MapFrom(src => src.Colaborador.ColaboradoresPorSucursal.Select(cs => cs.SucursalId)))
             .ReverseMap();
             #endregion
@@ -47,10 +46,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
                 .ForMember(dest => dest.FechaNacimiento, opt => opt.MapFrom(src => src.FechaNacimiento.ToString("dd/MM/yyyy")))
                 .ReverseMap();
             CreateMap<ColaboradorDto, Colaboradores>()
-             .ForMember(dest => dest.UsuarioCreacionId, opt => opt.MapFrom((src, dest) => src.ColaboradorId == 0 ? src.UsuarioGuardaId : dest.UsuarioCreacionId))
-             .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) => src.ColaboradorId == 0 ? DateTime.UtcNow : dest.FechaCreacion))
-             .ForMember(dest => dest.UsuarioModificacionId, opt => opt.MapFrom(src => src.ColaboradorId != 0 ? src.UsuarioGuardaId : (int?)null))
-             .ForMember(dest => dest.FechaModificacion, opt => opt.MapFrom(src => src.ColaboradorId != 0 ? DateTime.UtcNow : (DateTime?)null)) 
+             .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) =>  DateTime.UtcNow))
              .ReverseMap();
             CreateMap<ColaboradorPorSucursalDto, ColaboradoresPorSucursal>();
             CreateMap<Colaboradores, ColaboradoresPorSucursalDto>()
@@ -69,11 +65,11 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
             CreateMap<Sucursales, SucursalesDto>()
                 .ForMember(dest => dest.CiudadDescripcion, opt => opt.MapFrom(src => src.Ciudad.Descripcion))
                 .ReverseMap();
+            CreateMap<Sucursales, SucursalesListadoDto>()
+                .ForMember(dest => dest.CiudadDescripcion, opt => opt.MapFrom(src => src.Ciudad.Descripcion))
+                .ReverseMap();
             CreateMap<SucursalDto, Sucursales>()
-             .ForMember(dest => dest.UsuarioCreacionId, opt => opt.MapFrom((src, dest) => src.SucursalId == 0 ? src.UsuarioGuardaId : dest.UsuarioCreacionId))
-             .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) => src.SucursalId == 0 ? DateTime.UtcNow : dest.FechaCreacion))
-             .ForMember(dest => dest.UsuarioModificacionId, opt => opt.MapFrom(src => src.SucursalId != 0 ? src.UsuarioGuardaId : (int?)null))
-             .ForMember(dest => dest.FechaModificacion, opt => opt.MapFrom(src => src.SucursalId != 0 ? DateTime.UtcNow : (DateTime?)null))
+             .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) => DateTime.UtcNow ))
              .ReverseMap();
             CreateMap<Transportistas, TransportistasDto>()
                 .ForMember(dest => dest.CiudadDescripcion, opt => opt.MapFrom(src => src.Ciudad.Descripcion))
@@ -84,13 +80,19 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
                 .ForMember(dest => dest.FechaHora, opt => opt.MapFrom(src => src.FechaHora.ToString("dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture)))
                 .ReverseMap();
             CreateMap<ViajeDto, ViajesEncabezado>()
-             .ForMember(dest => dest.UsuarioCreacionId, opt => opt.MapFrom((src, dest) => src.ViajeEncabezadoId == 0 ? src.UsuarioGuardaId : dest.UsuarioCreacionId))
-             .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) => src.ViajeEncabezadoId == 0 ? DateTime.UtcNow : dest.FechaCreacion))
-             .ForMember(dest => dest.UsuarioModificacionId, opt => opt.MapFrom(src => src.ViajeEncabezadoId != 0 ? src.UsuarioGuardaId : (int?)null))
-             .ForMember(dest => dest.FechaModificacion, opt => opt.MapFrom(src => src.ViajeEncabezadoId != 0 ? DateTime.UtcNow : (DateTime?)null))
+             .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) => DateTime.UtcNow))
              .ReverseMap();
             CreateMap<ViajeDetallesDto, ViajesDetalle>().ReverseMap();
             CreateMap<ViajesEncabezado, ViajeReporteEncabezadoDto>().ReverseMap();
+            CreateMap<Solicitudes, SolicitudesDto>()
+                .ForMember(dest => dest.Usuario, opt => opt.MapFrom(src => src.Usuario.Usuario))
+                .ForMember(dest => dest.EstadoSolicitud, opt => opt.MapFrom(src => src.EstadoSolicitud.Descripcion))
+                .ForMember(dest => dest.ViajeEncabezado, opt => opt.MapFrom(src => "Viaje " + src.ViajeEncabezado.Sucursal + " - " + src.ViajeEncabezado.FechaHora.ToString("dd/MM/yyyy hh:mm tt", CultureInfo.InvariantCulture)))
+                .ForMember(soli => soli.Sucursal, dto =>dto.MapFrom(sucu => sucu.Sucursal.Descripcion))
+                .ForMember(dest => dest.Fecha, opt => opt.MapFrom(src => src.Fecha.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)))
+                .ReverseMap();
+            CreateMap<SolicitudDto, Solicitudes>().ReverseMap();
+            CreateMap<ProcesarSolicitudDto, Solicitudes>().ReverseMap();
             #endregion
         }
 

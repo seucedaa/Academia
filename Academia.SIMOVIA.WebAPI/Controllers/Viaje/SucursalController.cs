@@ -21,17 +21,18 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
-        [HttpGet("ObtenerSucursalesCercanas")]
-        public async Task<IActionResult> ObtenerSucursalesCercanas([FromQuery] double latitud, [FromQuery] double longitud)
+        [HttpGet("ObtenerSucursalesCercanas/{latitud}/{longitud}")]
+        public async Task<IActionResult> ObtenerSucursalesCercanas([FromRoute] decimal latitud, [FromRoute] decimal longitud)
         {
             var resultado = await _viajeService.ObtenerSucursalesCercanas(latitud, longitud);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
-        [HttpGet("ObtenerSucursalesPorIds")]
-        public async Task<IActionResult> ObtenerSucursalesPorIds([FromQuery] List<int> sucursalesIds)
+        [HttpGet("ObtenerSucursalesPorIds/{sucursalesIds}")]
+        public async Task<IActionResult> ObtenerSucursalesPorIds([FromRoute] string sucursalesIds)
         {
-            var resultado = await _viajeService.ObtenerSucursalesPorIds(sucursalesIds);
+            var ids = sucursalesIds.Split(',').Select(int.Parse).ToList();
+            var resultado = await _viajeService.ObtenerSucursalesPorIds(ids);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
@@ -42,13 +43,5 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             var resultado = await _viajeService.RegistrarSucursal(SucursalDto);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
-
-
-        //[HttpPut("EditarSucursal")]
-        //public async Task<IActionResult> EditarSucursal([FromBody] SucursalDto SucursalDto)
-        //{
-        //    var resultado = await _viajeService.EditarSucursal(SucursalDto);
-        //    return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        //}
     }
 }

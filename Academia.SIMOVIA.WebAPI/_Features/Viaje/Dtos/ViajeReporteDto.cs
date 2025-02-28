@@ -18,6 +18,7 @@
 
     public class ViajeReporteDetalleDto
     {
+        public int ViajeEncabezadoId { get; set; }
         public int ColaboradorId { get; set; }
         public string Colaborador { get; set; }
         public decimal? DistanciaKm { get; set; }

@@ -27,42 +27,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
             _unitOfWorkBuilder = unitOfWorkBuilder;
             _unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
         }
-        #region Roles
-        public async Task<Response<List<RolesDto>>> ObtenerRoles()
-        {
-            try
-            {
-                var listado = await _unitOfWork.Repository<Roles>().AsQueryable()
-                    .Where(r => r.Estado) 
-                    .ToListAsync();
-
-                var rolesDto = _mapper.Map<List<RolesDto>>(listado);
-
-                return new Response<List<RolesDto>>
-                {
-                    Exitoso = true,
-                    Data = rolesDto
-                };
-            }
-            catch (DbUpdateException)
-            {
-                return new Response<List<RolesDto>>
-                {
-                    Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "roles")
-                };
-            }
-            catch (Exception)
-            {
-                return new Response<List<RolesDto>>
-                {
-                    Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
-                };
-            }
-        }
-
-        #endregion
 
         #region Usuarios
         public async Task<Response<List<UsuariosDto>>> ObtenerUsuarios()
@@ -72,6 +36,15 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
                 var listado = await _unitOfWork.Repository<Usuarios>().AsQueryable()
                     .Where(u => u.Estado) 
                     .ToListAsync();
+
+                if (!listado.Any())
+                {
+                    return new Response<List<UsuariosDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "usuarios")
+                    };
+                }
 
                 var usuariosDto = _mapper.Map<List<UsuariosDto>>(listado);
 
@@ -86,7 +59,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
                 return new Response<List<UsuariosDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "usuarios")
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "usuarios")
                 };
             }
             catch (Exception)
@@ -94,107 +67,59 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
                 return new Response<List<UsuariosDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
 
         private async Task<SesionUsuarioDto> ObtenerDatosSesionUsuario(string usuarioNombre)
         {
-            var usuario = await _unitOfWork.Repository<Usuarios>().AsQueryable()
+            Usuarios? usuario = await _unitOfWork.Repository<Usuarios>().AsQueryable()
                 .Include(u => u.Rol)
                 .Include(u => u.Colaborador)
-                  .ThenInclude(c => c.Cargo)
-                .Include(u => u.Colaborador)
-                  .ThenInclude(c => c.ColaboradoresPorSucursal)
+                    .ThenInclude(c => c.Cargo)
+                .Include(u => u.Colaborador.ColaboradoresPorSucursal) 
                 .FirstOrDefaultAsync(u => u.Usuario == usuarioNombre);
 
-            var pantallas = await ObtenerPantallasPermitidas(usuario);
+            List<PantallaDto>? pantallas = await ObtenerPantallasPermitidas(usuario);
 
-            var sesionUsuarioDto = _mapper.Map<SesionUsuarioDto>(usuario);
+            SesionUsuarioDto sesionUsuarioDto = _mapper.Map<SesionUsuarioDto>(usuario);
             sesionUsuarioDto.Pantallas = pantallas;
 
             return sesionUsuarioDto;
         }
 
+
         public async Task<Response<SesionUsuarioDto>> InicioSesion(InicioSesionDto login)
         {
-            //var usuario = await _unitOfWork.Repository<Usuarios>().AsQueryable()
-                //.FirstOrDefaultAsync(u => u.Usuario == login.Usuario);
+            Usuarios? usuario = await _unitOfWork.Repository<Usuarios>().AsQueryable().FirstOrDefaultAsync(u => u.Usuario == login.Usuario);
 
-            var resultadoValidacion = await _accesoDomainService.ValidarInicioSesion(login);
+            Response<string> resultadoValidacion = _accesoDomainService.ValidarInicioSesion(login, usuario);
             if (!resultadoValidacion.Exitoso)
-            {
                 return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = resultadoValidacion.Mensaje };
-            }
 
-            var usuarioSesion = await ObtenerDatosSesionUsuario(login.Usuario);
+            SesionUsuarioDto usuarioSesion = await ObtenerDatosSesionUsuario(login.Usuario);
 
             return new Response<SesionUsuarioDto>
             {
                 Exitoso = true,
-                Mensaje = "Inicio de sesión exitoso",
+                Mensaje = Mensajes.SESION_EXITOSA,
                 Data = usuarioSesion
             };
         }
 
-
         private async Task<List<PantallaDto>> ObtenerPantallasPermitidas(Usuarios usuario)
         {
-            return await _unitOfWork.Repository<Pantallas>().AsQueryable()
-                .Where(p => usuario.EsAdministrador || usuario.Colaborador.Cargo.CargoId == 1 ||
-                            _unitOfWork.Repository<PantallasPorRoles>().AsQueryable().Any(ppr => ppr.RolId == usuario.RolId && ppr.PantallaId == p.PantallaId && p.Estado))
-                .Select(p => new PantallaDto
-                {
-                    PantallaId = p.PantallaId,
-                    Descripcion = p.Descripcion,
-                    DireccionURL = p.DireccionURL
-                })
-                .ToListAsync();
-        }
-
-        private async Task<Response<string>> ValidarRegistrarDatosUsuario(UsuarioDto usuarioDto)
-        {
-            if (string.IsNullOrEmpty(usuarioDto.Usuario) || string.IsNullOrEmpty(usuarioDto.Clave) ||
-                usuarioDto.ColaboradorId <= 0 || usuarioDto.RolId <= 0 || usuarioDto.UsuarioGuardaId <= 0)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ09 };
-            }
-
-            bool existe = await _unitOfWork.Repository<Usuarios>().AsQueryable().AnyAsync(u => u.Usuario == usuarioDto.Usuario);
-            if (existe)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "usuario") };
-            }
-
-            return new Response<string> { Exitoso = true }; 
-        }
-
-        private async Task<Response<string>> GuardarUsuario(UsuarioDto usuarioDto)
-        {
-            var nuevoUsuario = _mapper.Map<Usuarios>(usuarioDto);
-
-            try
-            {
-                _unitOfWork.Repository<Usuarios>().Add(nuevoUsuario);
-                await _unitOfWork.SaveChangesAsync();
-                return new Response<string> { Exitoso = true, Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Usuario") };
-            }
-            catch (Exception)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ07.Replace("@Entidad", "usuario") };
-            }
-        }
-
-        public async Task<Response<string>> RegistrarUsuario(UsuarioDto usuarioDto)
-        {
-            var validacionResultado = await ValidarRegistrarDatosUsuario(usuarioDto);
-            if (!validacionResultado.Exitoso)
-            {
-                return validacionResultado; 
-            }
-
-            return await GuardarUsuario(usuarioDto);
+            return await (from pantallas in _unitOfWork.Repository<Pantallas>().AsQueryable()
+                          where usuario.EsAdministrador || usuario.Colaborador.Cargo.CargoId == 1 || 
+                          (from pantallaPorRol in _unitOfWork.Repository<PantallasPorRoles>().AsQueryable()
+                                where pantallaPorRol.RolId == usuario.RolId && pantallaPorRol.PantallaId == pantallas.PantallaId
+                                && pantallas.Estado select pantallaPorRol).Any()
+                          select new PantallaDto
+                          { PantallaId = pantallas.PantallaId, 
+                              Descripcion = pantallas.Descripcion, 
+                              DireccionURL = pantallas.DireccionURL
+                          }).ToListAsync();
         }
 
         #endregion

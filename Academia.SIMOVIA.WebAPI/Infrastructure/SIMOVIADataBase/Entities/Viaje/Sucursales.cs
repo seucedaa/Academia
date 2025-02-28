@@ -14,6 +14,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
 
             ColaboradoresPorSucursal = new HashSet<ColaboradoresPorSucursal>();
             Viajes = new HashSet<ViajesEncabezado>();
+            Solicitudes = new HashSet<Solicitudes>();
         }
 
         public int SucursalId { get; set; }
@@ -34,5 +35,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         public virtual Usuarios UsuarioModificacion { get; set; }
         public ICollection<ColaboradoresPorSucursal> ColaboradoresPorSucursal { get; set; }
         public virtual ICollection<ViajesEncabezado> Viajes { get; set; }
+        public virtual ICollection<Solicitudes> Solicitudes { get; set; }
+
     }
 }

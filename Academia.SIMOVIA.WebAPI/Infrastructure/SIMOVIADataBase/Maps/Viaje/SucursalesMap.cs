@@ -99,6 +99,10 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje
                    .WithOne(v => v.Sucursal)
                    .HasForeignKey(v => v.SucursalId)
                    .OnDelete(DeleteBehavior.Restrict);
+            builder.HasMany(x => x.Solicitudes)
+                   .WithOne(v => v.Sucursal)
+                   .HasForeignKey(v => v.SucursalId)
+                   .OnDelete(DeleteBehavior.Restrict);
             #endregion
         }
     }

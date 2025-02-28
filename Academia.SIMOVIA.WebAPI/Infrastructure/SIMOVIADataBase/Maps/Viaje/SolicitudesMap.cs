@@ -31,17 +31,20 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje
             builder.Property(x => x.ViajeEncabezadoId)
                    .HasColumnName("ViajeEncabezado_Id")
                    .IsRequired(false); 
+            builder.Property(x => x.SucursalId)
+                   .HasColumnName("Sucursal_Id")
+                   .IsRequired(); 
 
             builder.Property(x => x.EstadoSolicitudId)
                    .HasColumnName("EstadoSolicitud_Id")
                    .IsRequired();
 
-            builder.Property(x => x.UsuarioModificacionId)
-                   .HasColumnName("Usuario_Modificacion")
+            builder.Property(x => x.UsuarioAprobadoId)
+                   .HasColumnName("Usuario_Aprobado")
                    .IsRequired(false);
 
-            builder.Property(x => x.FechaModificacion)
-                   .HasColumnName("Fecha_Modificacion")
+            builder.Property(x => x.FechaAprobado)
+                   .HasColumnName("Fecha_Aprobado")
                    .IsRequired(false);
 
             builder.Property(x => x.Estado)
@@ -49,15 +52,19 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje
                    .HasDefaultValue(true)
                    .IsRequired();
 
+            builder.Property(x => x.AgregarViajeSiguiente).HasColumnName("Agregar_Viaje_Siguiente").HasDefaultValue(true).IsRequired();
+
+            builder.Property(x => x.FechaViaje).HasColumnName("Fecha_Viaje").IsRequired();
+
             #region Relaciones uno a uno o uno a muchos
             builder.HasOne(x => x.Usuario)
                    .WithMany(u => u.Solicitudes)
                    .HasForeignKey(x => x.UsuarioId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(x => x.UsuarioModificacion)
+            builder.HasOne(x => x.UsuarioAprobado)
                    .WithMany(u => u.SolicitudesModificadas)
-                   .HasForeignKey(x => x.UsuarioModificacionId)
+                   .HasForeignKey(x => x.UsuarioAprobadoId)
                    .OnDelete(DeleteBehavior.Restrict);
             #endregion
 
@@ -65,6 +72,10 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje
             builder.HasOne(x => x.ViajeEncabezado)
                    .WithMany(v => v.Solicitudes)
                    .HasForeignKey(x => x.ViajeEncabezadoId)
+                   .OnDelete(DeleteBehavior.Restrict);
+            builder.HasOne(x => x.Sucursal)
+                   .WithMany(v => v.Solicitudes)
+                   .HasForeignKey(x => x.SucursalId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.EstadoSolicitud)

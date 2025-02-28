@@ -1,4 +1,5 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
+﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
+using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
 using Academia.SIMOVIA.WebAPI.Infrastructure;
@@ -35,11 +36,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     .Where(c => c.Estado)
                     .ToListAsync();
 
+                if (!listado.Any())
+                {
+                    return new Response<List<CargosDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "cargos")
+                    };
+                }
+
                 var cargosDto = _mapper.Map<List<CargosDto>>(listado);
 
                 return new Response<List<CargosDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Cargos"),
                     Data = cargosDto
                 };
             }
@@ -48,7 +59,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<CargosDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "cargos")
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "cargos")
                 };
             }
             catch (Exception)
@@ -56,7 +67,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<CargosDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
@@ -69,14 +80,23 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             try
             {
                 var listado = await _unitOfWork.Repository<EstadosCiviles>().AsQueryable()
-                    .Where(c => c.Estado)
-                    .ToListAsync();
+                    .Where(c => c.Estado).ToListAsync();
+
+                if (!listado.Any())
+                {
+                    return new Response<List<EstadosCivilesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "estados civiles")
+                    };
+                }
 
                 var estadosCivilesDto = _mapper.Map<List<EstadosCivilesDto>>(listado);
 
                 return new Response<List<EstadosCivilesDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Estados Civiles"),
                     Data = estadosCivilesDto
                 };
             }
@@ -85,7 +105,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<EstadosCivilesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "estados civiles")
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "estados civiles")
                 };
             }
             catch (Exception)
@@ -93,7 +113,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<EstadosCivilesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
@@ -108,11 +128,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 var listado = await _unitOfWork.Repository<Ciudades>().AsQueryable()
                     .ToListAsync();
 
+                if (!listado.Any())
+                {
+                    return new Response<List<CiudadesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "ciudades")
+                    };
+                }
+
                 var ciudadesDto = _mapper.Map<List<CiudadesDto>>(listado);
 
                 return new Response<List<CiudadesDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Ciudades"),
                     Data = ciudadesDto
                 };
             }
@@ -121,7 +151,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<CiudadesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "ciudades")
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "ciudades")
                 };
             }
             catch (Exception)
@@ -129,7 +159,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<CiudadesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
@@ -141,18 +171,28 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
         {
             try
             {
-                var listado = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
+                List<Colaboradores> listado = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
                  .Where(c => c.Estado)
                  .Include(c => c.EstadoCivil) 
                  .Include(c => c.Cargo)       
                  .Include(c => c.Ciudad)      
                  .ToListAsync();
 
+                if (!listado.Any())
+                {
+                    return new Response<List<ColaboradoresDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "colaboradores")
+                    };
+                }
+
                 var colaboradoresDto = _mapper.Map<List<ColaboradoresDto>>(listado);
 
                 return new Response<List<ColaboradoresDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Colaboradores"),
                     Data = colaboradoresDto
                 };
             }
@@ -161,7 +201,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<ColaboradoresDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "colaboradores")
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "colaboradores")
                 };
             }
             catch (Exception) 
@@ -169,79 +209,33 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<ColaboradoresDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
-
-        public async Task<Response<ColaboradorDto>> ObtenerColaboradorPorId(int id)
+        public async Task<Response<List<ColaboradoresPorSucursalDto>>> ObtenerColaboradoresDisponibles(int sucursalId, DateTime? fecha)
         {
             try
             {
-                var colaborador = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
-                    .Where(c => c.ColaboradorId == id)
-                    .Include(c => c.EstadoCivil)
-                    .Include(c => c.Cargo)
-                    .Include(c => c.Ciudad)
-                    .FirstOrDefaultAsync();
 
-                if (colaborador == null)
-                {
-                    return new Response<ColaboradorDto>
-                    {
-                        Exitoso = false,
-                        Mensaje = Mensajes.MSJ10.Replace("@Entidad", "colaborador")
-                    };
-                }
-
-                var colaboradorDto = _mapper.Map<ColaboradorDto>(colaborador);
-
-                return new Response<ColaboradorDto>
-                {
-                    Exitoso = true,
-                    Data = colaboradorDto
-                };
-            }
-            catch (DbUpdateException)
-            {
-                return new Response<ColaboradorDto>
-                {
-                    Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "colaborador")
-                };
-            }
-            catch (Exception)
-            {
-                return new Response<ColaboradorDto>
-                {
-                    Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
-                };
-            }
-        }
-
-        public async Task<Response<List<ColaboradoresPorSucursalDto>>> ObtenerColaboradoresDisponibles(int? sucursalId, DateTime? fecha)
-        {
-            try
-            {
                 var fechaConsulta = fecha ?? DateTime.Today;
 
-                var colaboradoresEnSucursal = await _unitOfWork.Repository<ColaboradoresPorSucursal>()
-                    .AsQueryable()
+                bool sucursalExiste = await _unitOfWork.Repository<Sucursales>().AsQueryable().AnyAsync(s => s.SucursalId == sucursalId);
+
+                if (!sucursalExiste)
+                    return new Response<List<ColaboradoresPorSucursalDto>>{ Exitoso = false, Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal")};
+
+                var colaboradoresEnSucursal = await _unitOfWork.Repository<ColaboradoresPorSucursal>().AsQueryable()
                     .Where(cs => cs.SucursalId == sucursalId)
                     .Select(cs => new
-                    {
-                        cs.ColaboradorId,
-                        cs.DistanciaKm
-                    })
-                    .ToListAsync();
+                    { cs.ColaboradorId, cs.DistanciaKm }).ToListAsync();
 
                 if (!colaboradoresEnSucursal.Any() || sucursalId == null)
                 {
                     return new Response<List<ColaboradoresPorSucursalDto>>
                     {
                         Exitoso = false,
-                        Mensaje = Mensajes.Sin_Registros.Replace("@Entidad", "colaboradores")
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "colaboradores")
                     };
                 }
 
@@ -267,7 +261,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 var distanciasDict = colaboradoresEnSucursal.ToDictionary(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
 
                 var colaboradoresDto = _mapper.Map<List<ColaboradoresPorSucursalDto>>(colaboradoresDisponibles, opt => opt.Items["Distancias"] = distanciasDict);
-
+                if (!colaboradoresDto.Any())
+                {
+                    return new Response<List<ColaboradoresPorSucursalDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "colaboradores")
+                    };
+                }
                 return new Response<List<ColaboradoresPorSucursalDto>>
                 {
                     Exitoso = true,
@@ -279,32 +280,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<ColaboradoresPorSucursalDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
 
-
-
         public async Task<Response<int>> RegistrarColaborador(ColaboradorDto colaboradorDto)
         {
-            bool dniExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI);
-            if (dniExiste)
-            {
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "DNI") };
-            }
-
-            bool correoExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico);
-            if (correoExiste)
-            {
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "correo electrónico") };
-            }
-
+            
             var validacion = await _generalDomainService.ValidarRegistrarDatosColaborador(colaboradorDto);
             if (!validacion.Exitoso)
-            {
                 return validacion;
-            }
+
+            var validacionDatosBd = await ValidarDatosColaborador(colaboradorDto);
+            if (!validacionDatosBd.Exitoso)
+                return validacionDatosBd;
 
             await _unitOfWork.BeginTransactionAsync();
             try
@@ -318,7 +308,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     return new Response<int>
                     {
                         Exitoso = false,
-                        Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador")
+                        Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "el").Replace("@entidad", "colaborador")
                     };
                 }
 
@@ -327,152 +317,91 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 var colaboradorSucursales = _mapper.Map<List<ColaboradoresPorSucursal>>(colaboradorDto.Sucursales);
                 colaboradorSucursales.ForEach(cs => cs.ColaboradorId = colaboradorId);
 
-
                 _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(colaboradorSucursales);
                 if (!await _unitOfWork.SaveChangesAsync()) 
                 {
                     await _unitOfWork.RollBackAsync();
-                    return new Response<int>{ Exitoso = false, Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador")};
+                    return new Response<int>{ Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")};
                 }
 
-                _unitOfWork.CommitAsync();
+                await _unitOfWork.CommitAsync();
 
                 return new Response<int>
                 {
                     Exitoso = true,
-                    Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Colaborador"),
+                    Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Colaborador"),
                 };
             }
             catch (Exception)
             {
-                _unitOfWork.RollBackAsync();
+                await _unitOfWork.RollBackAsync();
                 return new Response<int>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador")
+                    Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")
                 };
             }
         }
-        public async Task<Response<string>> EditarColaborador(ColaboradorDto colaboradorDto)
+
+        private async Task<Response<int>> ValidarDatosColaborador(ColaboradorDto colaboradorDto)
         {
-            var resultadoValidacion = await ValidarEditarColaborador(colaboradorDto);
-            if (!resultadoValidacion.Exitoso)
+            bool dniExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI);
+            bool correoExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico);
+
+            var camposDuplicados = new List<string>();
+
+            if (dniExiste) camposDuplicados.Add("DNI");
+            if (correoExiste) camposDuplicados.Add("Correo Electrónico");
+
+            if (camposDuplicados.Any())
             {
-                return resultadoValidacion;
+                string mensaje = camposDuplicados.Count == 1 ? Mensajes.CAMPO_EXISTENTE.Replace("@Campo", camposDuplicados.First())
+                    : Mensajes.CAMPOS_EXISTENTES.Replace("@Campos", string.Join(", ", camposDuplicados));
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
             }
 
-            return await ActualizarColaborador(colaboradorDto);
+            bool estadoCivilExiste = await _unitOfWork.Repository<EstadosCiviles>().AsQueryable().AnyAsync(ec => ec.EstadoCivilId == colaboradorDto.EstadoCivilId);
+            bool cargoExiste = await _unitOfWork.Repository<Cargos>().AsQueryable().AnyAsync(c => c.CargoId == colaboradorDto.CargoId);
+            bool ciudadExiste = await _unitOfWork.Repository<Ciudades>().AsQueryable().AnyAsync(c => c.CiudadId == colaboradorDto.CiudadId);
+            bool usuarioExiste = await _unitOfWork.Repository<Usuarios>().AsQueryable().AnyAsync(u => u.UsuarioId == colaboradorDto.UsuarioCreacionId);
+
+            var camposInvalidos = new List<string>();
+
+            if (!estadoCivilExiste) camposInvalidos.Add("Estado Civil");
+            if (!cargoExiste) camposInvalidos.Add("Cargo");
+            if (!ciudadExiste) camposInvalidos.Add("Ciudad");
+            if (!usuarioExiste) camposInvalidos.Add("Usuario");
+
+            if (camposInvalidos.Any())
+            {
+                string mensaje = camposInvalidos.Count == 1 ? Mensajes.NO_EXISTE.Replace("@Entidad", camposInvalidos.First())
+                    : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", string.Join(", ", camposInvalidos));
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            var sucursalIds = colaboradorDto.Sucursales.Select(s => s.SucursalId).Distinct().ToList();
+
+            var sucursalesExistentes = await _unitOfWork.Repository<Sucursales>()
+                .AsQueryable()
+                .Where(s => sucursalIds.Contains(s.SucursalId))
+                .Select(s => s.SucursalId)
+                .ToListAsync();
+
+            var sucursalesNoExistentes = sucursalIds.Except(sucursalesExistentes).ToList();
+
+            if (sucursalesNoExistentes.Any())
+            {
+                string mensaje = sucursalesNoExistentes.Count == 1
+                    ? Mensajes.NO_EXISTE.Replace("@Entidad", $"Sucursal ID {sucursalesNoExistentes.First()}")
+                    : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", $"Sucursales ID {string.Join(", ", sucursalesNoExistentes)}");
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            return new Response<int> { Exitoso = true };
         }
-
-        private async Task<Response<string>> ValidarEditarColaborador(ColaboradorDto colaboradorDto)
-        {
-            var camposObligatorios = new List<(string Campo, bool EsValido)>
-            {
-                ("Colaborador Id", colaboradorDto.ColaboradorId > 0),
-                ("Nombres", !string.IsNullOrEmpty(colaboradorDto.Nombres)),
-                ("Apellidos", !string.IsNullOrEmpty(colaboradorDto.Apellidos)),
-                ("Correo Electrónico", !string.IsNullOrEmpty(colaboradorDto.CorreoElectronico)),
-                ("Teléfono", !string.IsNullOrEmpty(colaboradorDto.Telefono)),
-                ("Sexo", !string.IsNullOrEmpty(colaboradorDto.Sexo)),
-                ("Fecha de Nacimiento", colaboradorDto.FechaNacimiento != default),
-                ("Dirección Exacta", !string.IsNullOrEmpty(colaboradorDto.DireccionExacta)),
-                ("Latitud", colaboradorDto.Latitud != 0),
-                ("Longitud", colaboradorDto.Longitud != 0),
-                ("Estado Civil", colaboradorDto.EstadoCivilId > 0),
-                ("Cargo", colaboradorDto.CargoId > 0),
-                ("Ciudad", colaboradorDto.CiudadId > 0),
-                ("Usuario Modificacion", colaboradorDto.UsuarioGuardaId > 0)
-            };
-            var campoFaltante = camposObligatorios.FirstOrDefault(c => !c.EsValido);
-            if (campoFaltante.Campo != null && !campoFaltante.EsValido)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ09.Replace("@Campo", campoFaltante.Campo) };
-            }
-
-            bool dniExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI && c.ColaboradorId != colaboradorDto.ColaboradorId);
-            if (dniExiste)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "DNI") };
-            }
-
-            bool correoExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico && c.ColaboradorId != colaboradorDto.ColaboradorId);
-            if (correoExiste)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ02.Replace("@Campo", "Correo Electrónico") };
-            }
-
-            return new Response<string> { Exitoso = true };
-        }
-
-
-        private async Task<Response<string>> ActualizarColaborador(ColaboradorDto colaboradorDto)
-        {
-            try
-            {
-                var colaborador = await _unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorDto.ColaboradorId);
-                if (colaborador == null)
-                {
-                    return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ10.Replace("@Entidad", "colaborador") }; 
-                }
-
-                _mapper.Map(colaboradorDto, colaborador);
-
-                colaborador.FechaModificacion = DateTime.Now;
-                colaborador.UsuarioModificacionId = 1;
-
-                await _unitOfWork.SaveChangesAsync();
-
-                return new Response<string> { Exitoso = true, Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Colaborador") }; 
-            }
-            catch (Exception)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ07.Replace("@Entidad", "colaborador") }; 
-            }
-        }
-
-        public async Task<Response<string>> ValidarColaboradorParaEliminar(int colaboradorId)
-        {
-            var colaborador = await _unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorId);
-            if (colaborador == null)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ10.Replace("@Entidad", "colaborador") };
-            }
-
-            bool estaEnUso = await _unitOfWork.Repository<Usuarios>().AsQueryable().AnyAsync(u => u.ColaboradorId == colaboradorId);
-            bool estaEnUsoSucursal = await _unitOfWork.Repository<ColaboradoresPorSucursal>().AsQueryable().AnyAsync(u => u.ColaboradorId == colaboradorId);
-            if (estaEnUso || estaEnUsoSucursal)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ11.Replace("@Entidad", "colaborador") };
-            }
-
-            return new Response<string> { Exitoso = true };
-        }
-
-        public async Task<Response<string>> DesactivarColaborador(int colaboradorId)
-        {
-            var validacion = await ValidarColaboradorParaEliminar(colaboradorId);
-            if (!validacion.Exitoso)
-            {
-                return validacion;
-            }
-
-            try
-            {
-                var colaborador = await _unitOfWork.Repository<Colaboradores>().FirstOrDefaultAsync(c => c.ColaboradorId == colaboradorId);
-                colaborador.Estado = false;
-
-                await _unitOfWork.SaveChangesAsync();
-
-                return new Response<string> { Exitoso = true, Mensaje = Mensajes.MSJ12.Replace("@Entidad", "Colaborador desactivado") };
-            }
-            catch (Exception)
-            {
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.MSJ06 };
-            }
-        }
-
-
-
         #endregion
     }
 }

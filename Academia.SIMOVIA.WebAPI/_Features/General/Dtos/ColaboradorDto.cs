@@ -4,7 +4,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
 {
     public class ColaboradorDto
     {
-        public int ColaboradorId { get; set; }
         public string DNI { get; set; }
         public string Nombres { get; set; }
         public string Apellidos { get; set; }
@@ -18,7 +17,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
         public int EstadoCivilId { get; set; }
         public int CargoId { get; set; }
         public int CiudadId { get; set; }
-        public int UsuarioGuardaId { get; set; }
+        public int UsuarioCreacionId { get; set; }
         public List<ColaboradorPorSucursalDto> Sucursales { get; set; }
     }
     

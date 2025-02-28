@@ -27,13 +27,5 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
-
-        [HttpPost("RegistrarUsuario")]
-        public async Task<IActionResult> RegistrarUsuario([FromBody] UsuarioDto usuarioDto)
-        {
-            var resultado = await _accesoService.RegistrarUsuario(usuarioDto);
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
-
     }
 }

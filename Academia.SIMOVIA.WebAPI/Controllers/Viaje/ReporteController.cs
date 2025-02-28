@@ -14,9 +14,9 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             _viajeService = viajeService;
         }
 
-        [HttpGet("Reporte")]
-        public async Task<IActionResult> ObtenerReporteViajes([FromQuery] int transportistaId,[FromQuery] DateTime fechaInicio,
-            [FromQuery] DateTime fechaFin)
+        [HttpGet("Reporte/{transportistaId}/{fechaInicio:datetime}/{fechaFin:datetime}")]
+        public async Task<IActionResult> ObtenerReporteViajes([FromRoute] int transportistaId,[FromRoute] DateTime fechaInicio,
+            [FromRoute] DateTime fechaFin)
         {
             var resultado = await _viajeService.ObtenerReporteViajes(transportistaId, fechaInicio, fechaFin);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);

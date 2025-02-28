@@ -1,4 +1,6 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.General;
+﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
+using Academia.SIMOVIA.WebAPI._Features.Acceso;
+using Academia.SIMOVIA.WebAPI._Features.General;
 using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
@@ -15,6 +17,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Globalization;
+using Academia.SIMOVIA.WebAPI._Features.Viaje.Enums;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 {
@@ -24,15 +27,17 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
         private readonly IMapper _mapper;
         private readonly ViajeDomainService _viajeDomainService;
         private readonly Farsiman.Domain.Core.Standard.Repositories.IUnitOfWork _unitOfWork;
-        public ViajeService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, ViajeDomainService viajeDomainService)
+        private readonly UbicacionService _ubicacionService;
+        public ViajeService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, ViajeDomainService viajeDomainService, UbicacionService ubicacionService)
         {
             _unitOfWorkBuilder = unitOfWorkBuilder;
             _mapper = mapper;
             _viajeDomainService = viajeDomainService;
             _unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+            _ubicacionService = ubicacionService;
         }
         #region Sucursales
-        public async Task<Response<List<SucursalesDto>>> ObtenerSucursales()
+        public async Task<Response<List<SucursalesListadoDto>>> ObtenerSucursales()
         {
             try
             {
@@ -41,33 +46,48 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                  .Include(c => c.Ciudad)
                  .ToListAsync();
 
-                var sucursalesDto = _mapper.Map<List<SucursalesDto>>(listado);
+                if (!listado.Any())
+                {
+                    return new Response<List<SucursalesListadoDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "sucursales")
+                    };
+                }
 
-                return new Response<List<SucursalesDto>>
+                var sucursalesDto = _mapper.Map<List<SucursalesListadoDto>>(listado);
+
+                return new Response<List<SucursalesListadoDto>>
                 {
                     Exitoso = true,
-                    Data = sucursalesDto
+                    Data = sucursalesDto,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Sucursales"),
                 };
             }
             catch (DbUpdateException)
             {
-                return new Response<List<SucursalesDto>>
+                return new Response<List<SucursalesListadoDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "sucursales")
+                    Mensaje = Mensajes.ERROR_LISTA.Replace("@entidad", "sucursales")
                 };
             }
             catch (Exception)
             {
-                return new Response<List<SucursalesDto>>
+                return new Response<List<SucursalesListadoDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
-        public async Task<Response<List<SucursalesDto>>> ObtenerSucursalesCercanas(double latitud, double longitud)
+        public async Task<Response<List<SucursalesDto>>> ObtenerSucursalesCercanas(decimal latitud, decimal longitud)
         {
+            
+            var validacion = await _viajeDomainService.ValidarUbicacion(latitud,longitud);
+            if (!validacion.Exitoso)
+                return validacion;
+
             try
             {
                 List<Sucursales> sucursales = await _unitOfWork.Repository<Sucursales>()
@@ -81,20 +101,20 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     return new Response<List<SucursalesDto>>
                     {
                         Exitoso = false,
-                        Mensaje = Mensajes.Sin_Registros.Replace("@Entidad", "sucursales")
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "sucursales")
                     };
                 }
 
-                string apiKey = Environment.GetEnvironmentVariable("API_KEY");
-                string origins = $"{latitud.ToString(CultureInfo.InvariantCulture)},{longitud.ToString(CultureInfo.InvariantCulture)}";
-                string destinations = string.Join("|", sucursales.Select(s =>
-                    $"{s.Latitud.ToString(CultureInfo.InvariantCulture)},{s.Longitud.ToString(CultureInfo.InvariantCulture)}"));
+                DistanceMatrixApiResponseDto googleResponse = await _ubicacionService.ObtenerDistanciasSucursales(latitud, longitud, sucursales);
 
-                string url = $"https://maps.googleapis.com/maps/api/distancematrix/json?origins={origins}&destinations={destinations}&key={apiKey}&units=metric";
-
-                using HttpClient client = new HttpClient();
-                string response = await client.GetStringAsync(url);
-                RespuestaMatrizDistanciaDto googleResponse = JsonConvert.DeserializeObject<RespuestaMatrizDistanciaDto>(response);
+                if (googleResponse?.rows == null || !googleResponse.rows.Any() || googleResponse.rows[0].elements == null)
+                {
+                    return new Response<List<SucursalesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.ERROR_DISTANCIA
+                    };
+                }
 
                 List<SucursalesDto> sucursalesCercanas = sucursales
                     .Select((sucursal, index) =>
@@ -109,12 +129,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                         SucursalesDto dto = _mapper.Map<SucursalesDto>(s.Sucursal);
                         dto.DistanciaKm = s.DistanciaKm;
                         return dto;
-                    })
-                    .ToList();
+                    }).ToList();
+
+                if (!sucursalesCercanas.Any())
+                {
+                    return new Response<List<SucursalesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "sucursales")
+                    };
+                }
 
                 return new Response<List<SucursalesDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Sucursales"),
                     Data = sucursalesCercanas
                 };
             }
@@ -123,7 +152,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<List<SucursalesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
@@ -137,11 +166,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     .Include(c => c.Ciudad)
                     .ToListAsync();
 
+                if (!listado.Any())
+                {
+                    return new Response<List<SucursalesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "sucursales")
+                    };
+                }
+
                 var sucursalesDto = _mapper.Map<List<SucursalesDto>>(listado);
 
                 return new Response<List<SucursalesDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Sucursales"),
                     Data = sucursalesDto
                 };
             }
@@ -150,7 +189,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<List<SucursalesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "sucursales")
+                    Mensaje = Mensajes.ERROR_LISTA.Replace("@entidad", "sucursales")
                 };
             }
             catch (Exception)
@@ -158,7 +197,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<List<SucursalesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
@@ -173,27 +212,76 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 _unitOfWork.Repository<Sucursales>().Add(nuevoSucursal);
                 _unitOfWork.SaveChanges();
 
-                return new Response<int> { Exitoso = true, Mensaje = Mensajes.MSJ05.Replace("@Entidad", "Sucursal")};
+                return new Response<int> { Exitoso = true, Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Sucursal") };
             }
             catch (Exception ex)
             {
-                return new Response<int> { Exitoso = false, Mensaje = ex.ToString()};
+                return new Response<int>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","la").Replace("@entidad", "sucursal")
+                };
             }
+        }
+        private async Task<Response<int>> ValidarRegistrarDatosSucursal(SucursalDto sucursalDto)
+        {
+            var camposDuplicados = new List<string>();
+
+            bool descripcionExiste = await _unitOfWork.Repository<Sucursales>()
+                .AsQueryable()
+                .AnyAsync(c => c.Descripcion == sucursalDto.Descripcion);
+            if (descripcionExiste) camposDuplicados.Add("Sucursal");
+
+            bool ubicacionExiste = await _unitOfWork.Repository<Sucursales>()
+                .AsQueryable()
+                .AnyAsync(c => c.Latitud == sucursalDto.Latitud && c.Longitud == sucursalDto.Longitud);
+            if (ubicacionExiste) camposDuplicados.Add("Ubicación de la sucursal");
+
+            if (camposDuplicados.Any())
+            {
+                string mensaje = camposDuplicados.Count == 1
+                    ? Mensajes.CAMPO_EXISTENTE.Replace("@Campo", camposDuplicados.First())
+                    : Mensajes.CAMPOS_EXISTENTES.Replace("@Campos", string.Join(", ", camposDuplicados));
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            bool ciudadExiste = await _unitOfWork.Repository<Ciudades>()
+                .AsQueryable()
+                .AnyAsync(c => c.CiudadId == sucursalDto.CiudadId);
+            bool usuarioExiste = await _unitOfWork.Repository<Usuarios>()
+                .AsQueryable()
+                .AnyAsync(u => u.UsuarioId == sucursalDto.UsuarioCreacionId);
+
+            var camposInvalidos = new List<string>();
+
+            if (!ciudadExiste) camposInvalidos.Add("Ciudad");
+            if (!usuarioExiste) camposInvalidos.Add("Usuario");
+
+            if (camposInvalidos.Any())
+            {
+                string mensaje = camposInvalidos.Count == 1
+                    ? Mensajes.NO_EXISTE.Replace("@Entidad", camposInvalidos.First())
+                    : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", string.Join(", ", camposInvalidos));
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            return new Response<int> { Exitoso = true };
         }
 
         public async Task<Response<int>> RegistrarSucursal(SucursalDto sucursalDto)
         {
 
-            bool descripcionExiste = await _unitOfWork.Repository<Sucursales>().AsQueryable().AnyAsync(c => c.Descripcion == sucursalDto.Descripcion);
-            if (descripcionExiste)
-            {
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ14.Replace("@Campo", "Sucursal") };
-            }
             var validacion = await _viajeDomainService.ValidarRegistrarDatosSucursal(sucursalDto);
             if (!validacion.Exitoso)
             {
                 return validacion;
             }
+
+            var validacionDatosBd = await ValidarRegistrarDatosSucursal(sucursalDto);
+            if (!validacionDatosBd.Exitoso)
+                return validacionDatosBd;
 
             return await GuardarSucursal(sucursalDto);
         }
@@ -210,6 +298,15 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                  .Include(v => v.Transportista)
                  .ToListAsync();
 
+                if (!listado.Any())
+                {
+                    return new Response<List<ViajesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "viajes")
+                    };
+                }
+
                 var viajesDto = _mapper.Map<List<ViajesDto>>(listado);
 
                 return new Response<List<ViajesDto>>
@@ -223,7 +320,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<List<ViajesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "viajes")
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "viajes")
                 };
             }
             catch (Exception)
@@ -231,35 +328,25 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<List<ViajesDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
 
-        private async Task<double> CalcularDistanciaGoogle(double latOrigen, double lonOrigen, List<(double Latitud, double Longitud)> colaboradores)
-        {
-            string apiKey = Environment.GetEnvironmentVariable("API_KEY");
-            string origin = $"{latOrigen.ToString(CultureInfo.InvariantCulture)},{lonOrigen.ToString(CultureInfo.InvariantCulture)}";
-            string waypoints = string.Join("|", colaboradores.Select(c => $"{c.Latitud.ToString(CultureInfo.InvariantCulture)},{c.Longitud.ToString(CultureInfo.InvariantCulture)}"));
-            string destination = $"{colaboradores.Last().Latitud.ToString(CultureInfo.InvariantCulture)},{colaboradores.Last().Longitud.ToString(CultureInfo.InvariantCulture)}";
-            string url = $"https://maps.googleapis.com/maps/api/directions/json?origin={origin}&destination={destination}&waypoints=optimize:true|{waypoints}&key={apiKey}&units=metric";
-
-            using HttpClient client = new HttpClient();
-            string response = await client.GetStringAsync(url);
-            RutaGoogleDto googleResponse = JsonConvert.DeserializeObject<RutaGoogleDto>(response);
-
-            if (googleResponse.routes == null || !googleResponse.routes.Any())
-            {
-                return -1; 
-            }
-
-            double distanciaKm = googleResponse.routes[0].legs.Sum(l => l.distance.value) / 1000.0;
-            return distanciaKm;
-        }
-
-
         public async Task<Response<int>> RegistrarViaje(ViajeDto viajeDto)
         {
+            var validacion = await _viajeDomainService.ValidarRegistrarDatosViaje(viajeDto);
+            if (!validacion.Exitoso)
+                return validacion;
+
+            var validacionBD = await ValidarDatosViaje(viajeDto);
+            if (!validacionBD.Exitoso)
+                return validacionBD;
+
+            var validacionColaboradores = await ValidarColaboradoresParaViaje(viajeDto.SucursalId, viajeDto.FechaHora, viajeDto.Colaboradores.Select(c => c.ColaboradorId).ToList());
+            if (!validacionColaboradores.Exitoso)
+                return validacionColaboradores;
+
             await _unitOfWork.BeginTransactionAsync();
             try
             {
@@ -269,11 +356,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     .Select(s => new { s.Latitud, s.Longitud })
                     .FirstOrDefaultAsync();
 
-                if (sucursal == null)
-                {
-                    return new Response<int> { Exitoso = false, Mensaje = "Sucursal no encontrada." };
-                }
-
                 var colaboradores = await _unitOfWork.Repository<Colaboradores>()
                     .AsQueryable()
                     .Where(c => viajeDto.Colaboradores.Select(v => v.ColaboradorId).Contains(c.ColaboradorId))
@@ -281,44 +363,36 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     .ToListAsync();
 
                 if (!colaboradores.Any())
-                {
-                    return new Response<int> { Exitoso = false, Mensaje = "No hay colaboradores en este viaje." };
-                }
+                    return new Response<int> { Exitoso = false, Mensaje = Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", "Colaboradores") };
 
-                double distanciaTotalKm = 0;
+                decimal distanciaTotalKm = 0;
                 int totalColaboradores = colaboradores.Count;
                 int maximoSolicitudes = 25;
 
                 for (int i = 0; i < totalColaboradores; i += maximoSolicitudes)
                 {
                     var cantidadColaboradores = colaboradores.Skip(i).Take(maximoSolicitudes).ToList();
-                    double distanciaCantidad = await CalcularDistanciaGoogle(
-                        (double)sucursal.Latitud, (double)sucursal.Longitud,
-                        cantidadColaboradores.Select(c => ((double)c.Latitud, (double)c.Longitud)).ToList()
+                    decimal distanciaCantidad = await _ubicacionService.CalcularDistanciaViaje(
+                        sucursal.Latitud, sucursal.Longitud,
+                        cantidadColaboradores.Select(c => (c.Latitud, c.Longitud)).ToList()
                     );
 
-                    if (distanciaCantidad < 0)
-                    {
-                        return new Response<int> { Exitoso = false, Mensaje = "Error al calcular la distancia del viaje." };
-                    }
+                    var resultadoValidacion = _viajeDomainService.ValidarDistancia(distanciaCantidad, distanciaTotalKm);
+                    if (!resultadoValidacion.Exitoso)
+                        return resultadoValidacion;
 
                     distanciaTotalKm += distanciaCantidad;
-
-                    if (distanciaTotalKm > 100)
-                    {
-                        return new Response<int>
-                        {
-                            Exitoso = false,
-                            Mensaje = $"La distancia total del viaje ({distanciaTotalKm} km) supera el límite de 100 km."
-                        };
-                    }
                 }
+                var transportistaTarifa = await _unitOfWork.Repository<Transportistas>().AsQueryable().Where(t => t.TransportistaId == viajeDto.TransportistaId)
+                    .Select(t => t.Tarifa)
+                    .FirstOrDefaultAsync();
 
-                decimal tarifa = viajeDto.TarifaTransportista;
-                decimal total = (decimal)distanciaTotalKm * tarifa;
+                decimal tarifa = transportistaTarifa;
+                decimal total = distanciaTotalKm * tarifa;
 
                 var nuevoViaje = _mapper.Map<ViajesEncabezado>(viajeDto);
-                nuevoViaje.DistanciaTotalKm = (decimal)distanciaTotalKm;
+                nuevoViaje.DistanciaTotalKm = distanciaTotalKm;
+                nuevoViaje.TarifaTransportista = tarifa;
                 nuevoViaje.Total = total;
                 _unitOfWork.Repository<ViajesEncabezado>().Add(nuevoViaje);
 
@@ -328,7 +402,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     return new Response<int>
                     {
                         Exitoso = false,
-                        Mensaje = Mensajes.MSJ07.Replace("@Entidad", "viaje")
+                        Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "viaje")
                     };
                 }
 
@@ -341,7 +415,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 if (!await _unitOfWork.SaveChangesAsync())
                 {
                     await _unitOfWork.RollBackAsync();
-                    return new Response<int> { Exitoso = false, Mensaje = Mensajes.MSJ07.Replace("@Entidad", "viaje") };
+                    return new Response<int> { Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "el").Replace("@entidad", "viaje") };
                 }
 
                 await _unitOfWork.CommitAsync();
@@ -349,7 +423,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<int>
                 {
                     Exitoso = true,
-                    Mensaje = $"Viaje registrado con éxito. Distancia total: {distanciaTotalKm} km.",
+                    Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Viaje")
                 };
             }
             catch (Exception)
@@ -358,11 +432,236 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<int>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ07.Replace("@Entidad", "viaje")
+                    Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "el").Replace("@entidad", "viaje")
                 };
             }
         }
 
+        private async Task<Response<int>> ValidarDatosViaje(ViajeDto viajeDto)
+        {
+            bool sucursalExiste = await _unitOfWork.Repository<Sucursales>().AsQueryable().AnyAsync(s => s.SucursalId == viajeDto.SucursalId);
+            bool transportistaExiste = await _unitOfWork.Repository<Transportistas>().AsQueryable().AnyAsync(t => t.TransportistaId == viajeDto.TransportistaId);
+            bool usuarioExiste = await _unitOfWork.Repository<Usuarios>().AsQueryable().AnyAsync(u => u.UsuarioId == viajeDto.UsuarioCreacionId);
+
+            var camposInvalidos = new List<string>();
+
+            if (!sucursalExiste) camposInvalidos.Add("Sucursal");
+            if (!transportistaExiste) camposInvalidos.Add("Transportista");
+            if (!usuarioExiste) camposInvalidos.Add("Usuario");
+
+            if (camposInvalidos.Any())
+            {
+                string mensaje = camposInvalidos.Count == 1 ? Mensajes.NO_EXISTE.Replace("@Entidad", camposInvalidos.First())
+                    : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", string.Join(", ", camposInvalidos));
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            var usuario = await _unitOfWork.Repository<Usuarios>().AsQueryable().Where(u => u.UsuarioId == viajeDto.UsuarioCreacionId)
+                .Select(u => new { u.EsAdministrador })
+                .FirstOrDefaultAsync();
+
+            bool esGerente = await _unitOfWork.Repository<Colaboradores>().AsQueryable().Where(c => c.ColaboradorId == viajeDto.UsuarioCreacionId)
+                .Select(c => c.CargoId == 1).FirstOrDefaultAsync();
+
+            if (!usuario.EsAdministrador && !esGerente)
+                return new Response<int>{Exitoso = false, Mensaje = Mensajes.SIN_PERMISO};
+
+            var colaboradorIds = viajeDto.Colaboradores.Select(c => c.ColaboradorId).Distinct().ToList();
+
+            var colaboradoresExistentes = await _unitOfWork.Repository<Colaboradores>()
+                .AsQueryable()
+                .Where(c => colaboradorIds.Contains(c.ColaboradorId))
+                .Select(c => c.ColaboradorId)
+                .ToListAsync();
+
+            var colaboradoresNoExistentes = colaboradorIds.Except(colaboradoresExistentes).ToList();
+
+            if (colaboradoresNoExistentes.Any())
+            {
+                string mensaje = colaboradoresNoExistentes.Count == 1
+                    ? Mensajes.NO_EXISTE.Replace("@Entidad", $"Colaborador ID {colaboradoresNoExistentes.First()}")
+                    : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", $"Colaboradores ID {string.Join(", ", colaboradoresNoExistentes)}");
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            return new Response<int> { Exitoso = true };
+        }
+
+        private async Task<Response<int>> ValidarColaboradoresParaViaje(int sucursalId, DateTime fecha, List<int> colaboradoresIds)
+        {
+            var colaboradoresDisponibles = await _unitOfWork.Repository<ColaboradoresPorSucursal>()
+                .AsQueryable()
+                .Where(cs => cs.SucursalId == sucursalId)
+                .Select(cs => cs.ColaboradorId)
+                .ToListAsync();
+
+            var viajesIds = await _unitOfWork.Repository<ViajesEncabezado>()
+                .AsQueryable()
+                .Where(v => v.SucursalId == sucursalId && v.FechaHora.Date == fecha.Date)
+                .Select(v => v.ViajeEncabezadoId)
+                .ToListAsync();
+
+            var colaboradoresEnViaje = await _unitOfWork.Repository<ViajesDetalle>()
+                .AsQueryable()
+                .Where(vd => viajesIds.Contains(vd.ViajeEncabezadoId))
+                .Select(vd => vd.ColaboradorId)
+                .ToListAsync();
+
+            var colaboradoresInvalidos = colaboradoresIds
+                .Where(c => !colaboradoresDisponibles.Contains(c) || colaboradoresEnViaje.Contains(c))
+                .ToList();
+
+            if (colaboradoresInvalidos.Any())
+            {
+                string mensaje = colaboradoresInvalidos.Count == 1
+                    ? Mensajes.COLABORADOR_NO_VALIDO.Replace("@colaboradorId", colaboradoresInvalidos.First().ToString())
+                    : Mensajes.COLABORADORES_NO_VALIDOS.Replace("@colaboradoresIds", string.Join(", ", colaboradoresInvalidos));
+
+                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            return new Response<int> { Exitoso = true };
+        }
+
+        public async Task<Response<RutaViajeDto>> ObtenerRutaViaje(int viajeEncabezadoId)
+        {
+            var viaje = await _unitOfWork.Repository<ViajesEncabezado>()
+                .AsQueryable()
+                .Where(v => v.ViajeEncabezadoId == viajeEncabezadoId)
+                .Select(v => new { v.SucursalId })
+                .FirstOrDefaultAsync();
+
+            if (viaje == null)
+            {
+                return new Response<RutaViajeDto>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Viaje")
+                };
+            }
+
+            var sucursal = await _unitOfWork.Repository<Sucursales>()
+                .AsQueryable()
+                .Where(s => s.SucursalId == viaje.SucursalId)
+                .Select(s => new { s.Latitud, s.Longitud })
+                .FirstOrDefaultAsync();
+
+            if (sucursal == null)
+            {
+                return new Response<RutaViajeDto>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal")
+                };
+            }
+
+            var colaboradores = await _unitOfWork.Repository<ViajesDetalle>()
+                .AsQueryable()
+                .Where(vd => vd.ViajeEncabezadoId == viajeEncabezadoId && vd.Estado)
+                .Join(_unitOfWork.Repository<Colaboradores>().AsQueryable(),
+                    vd => vd.ColaboradorId,
+                    c => c.ColaboradorId,
+                    (vd, c) => new
+                    {
+                        ColaboradorId = c.ColaboradorId,
+                        Colaborador = c.Nombres + " " + c.Apellidos,
+                        Latitud = c.Latitud,
+                        Longitud = c.Longitud,
+                        DireccionExacta = c.DireccionExacta
+                    })
+                .ToListAsync();
+
+            if (!colaboradores.Any())
+            {
+                return new Response<RutaViajeDto>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "colaboradores en el viaje")
+                };
+            }
+
+            var distanciasDict = await _unitOfWork.Repository<ColaboradoresPorSucursal>()
+                .AsQueryable()
+                .Where(cs => cs.SucursalId == viaje.SucursalId && colaboradores.Select(c => c.ColaboradorId).Contains(cs.ColaboradorId))
+                .ToDictionaryAsync(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
+
+            var waypoints = colaboradores.Select(c => new WaypointDto
+            {
+                Colaborador = c.Colaborador,
+                Latitud = c.Latitud,
+                Longitud = c.Longitud,
+                DistanciaKm = distanciasDict.ContainsKey(c.ColaboradorId) ? distanciasDict[c.ColaboradorId] : null, 
+                DireccionExacta = c.DireccionExacta
+            }).ToList();
+
+            var ruta = new RutaViajeDto
+            {
+                LatitudOrigen = sucursal.Latitud,
+                LongitudOrigen = sucursal.Longitud,
+                Waypoints = waypoints
+            };
+
+            return new Response<RutaViajeDto>
+            {
+                Exitoso = true,
+                Mensaje = Mensajes.LISTADO_INDEPENDIENTE.Replace("@Entidad", "Detalle Viaje"),
+                Data = ruta
+            };
+        }
+
+
+        public async Task<Response<List<ViajesDto>>> ObtenerViajesDisponibles(int? sucursalId, DateTime? fecha)
+        {
+            try
+            {
+                if (sucursalId == null)
+                {
+                    return new Response<List<ViajesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "viajes")
+                    };
+                }
+
+                var fechaConsulta = fecha ?? DateTime.Today;
+
+                var viajesDisponibles = await _unitOfWork.Repository<ViajesEncabezado>().AsQueryable()
+                    .Where(v => v.SucursalId == sucursalId && v.FechaHora.Date == fechaConsulta.Date)
+                    .Include(v => v.Sucursal)
+                    .Include(v => v.Transportista)
+                    .ToListAsync();
+
+                var viajesFiltrados = viajesDisponibles
+                    .Where(v => v.DistanciaTotalKm < 100)
+                    .ToList();
+
+                if (!viajesFiltrados.Any())
+                {
+                    return new Response<List<ViajesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "viajes")
+                    };
+                }
+                var viajesDto = _mapper.Map<List<ViajesDto>>(viajesFiltrados);
+
+                return new Response<List<ViajesDto>>
+                {
+                    Exitoso = true,
+                    Data = viajesDto
+                };
+            }
+            catch (Exception)
+            {
+                return new Response<List<ViajesDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_GENERAL
+                };
+            }
+        }
 
         #endregion
 
@@ -376,11 +675,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                  .Include(c => c.Ciudad)
                  .ToListAsync();
 
+                if (!listado.Any())
+                {
+                    return new Response<List<TransportistasDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "transportistas")
+                    };
+                }
+
                 var transportistasDto = _mapper.Map<List<TransportistasDto>>(listado);
 
                 return new Response<List<TransportistasDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Transportistas"),
                     Data = transportistasDto
                 };
             }
@@ -389,7 +698,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<List<TransportistasDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ13.Replace("@entidad", "transportistas")
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "transportistas")
                 };
             }
             catch (Exception)
@@ -397,7 +706,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<List<TransportistasDto>>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.MSJ06
+                    Mensaje = Mensajes.ERROR_GENERAL
                 };
             }
         }
@@ -406,6 +715,15 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
         #region Reporte
         public async Task<Response<ViajeReporteResponseDto>> ObtenerReporteViajes(int transportistaId, DateTime fechaInicio, DateTime fechaFin)
         {
+            bool transportistaExiste = await _unitOfWork.Repository<Transportistas>().AsQueryable().AnyAsync(t => t.TransportistaId == transportistaId);
+            if (!transportistaExiste)
+            {
+                return new Response<ViajeReporteResponseDto>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Transportista")
+                };
+            }
             try
             {
                 var query = await (from viajeEncabezado in _unitOfWork.Repository<ViajesEncabezado>().AsQueryable()
@@ -433,6 +751,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                                          && viajeEncabezado.FechaHora.Date <= fechaFin.Date
                                          && viajeEncabezado.TransportistaId == transportistaId
                                          && monedaPorPais.Principal == true  
+                                         && viajeEncabezado.Estado == true
                                    orderby viajeEncabezado.FechaHora descending
                                    select new
                                    {
@@ -453,6 +772,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                                        },
                                        ViajeDetalle = new ViajeReporteDetalleDto
                                        {
+                                           ViajeEncabezadoId = viajeEncabezado.ViajeEncabezadoId,
                                            ColaboradorId = colaborador.ColaboradorId,
                                            Colaborador = colaborador.DNI + " - " + colaborador.Nombres + " " + colaborador.Apellidos,
                                            DireccionExacta = colaborador.DireccionExacta,
@@ -478,6 +798,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 return new Response<ViajeReporteResponseDto>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_INDEPENDIENTE.Replace("@Entidad", "Reporte"),
                     Data = new ViajeReporteResponseDto
                     {
                         Encabezados = encabezados,
@@ -486,16 +807,341 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     }
                 };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new Response<ViajeReporteResponseDto>
                 {
                     Exitoso = false,
-                    Mensaje = $"Error al obtener el reporte de viajes: {ex.Message}"
+                    Mensaje = Mensajes.ERROR_INDEPENDIENTE.Replace("@entidad", "reporte de viajes")
                 };
             }
         }
 
+
+        #endregion
+
+        #region Solicitudes
+        public async Task<Response<List<SolicitudesDto>>> ObtenerSolicitudes()
+        {
+            try
+            {
+                var listado = await _unitOfWork.Repository<Solicitudes>().AsQueryable()
+                 .Include(s => s.Usuario)
+                 .Include(v=>v.ViajeEncabezado)
+                 .Include(s=> s.Sucursal)
+                 .Include(s=> s.EstadoSolicitud)
+                 .Where(s=>s.Estado)
+                 .ToListAsync();
+
+                if (!listado.Any())
+                {
+                    return new Response<List<SolicitudesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "solicitudes")
+                    };
+                }
+
+                var viajesDto = _mapper.Map<List<SolicitudesDto>>(listado);
+
+                return new Response<List<SolicitudesDto>>
+                {
+                    Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Solicitudes"),
+                    Data = viajesDto
+                };
+            }
+            catch (DbUpdateException)
+            {
+                return new Response<List<SolicitudesDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "viajes")
+                };
+            }
+            catch (Exception)
+            {
+                return new Response<List<SolicitudesDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_GENERAL
+                };
+            }
+        }
+
+        public async Task<Response<int>> RegistrarSolicitud(SolicitudDto solicitudDto)
+        {
+            var validacionResultado = await _viajeDomainService.ValidarRegistrarDatosSolicitud(solicitudDto);
+            if (!validacionResultado.Exitoso)
+                return validacionResultado;
+
+            var nuevaSolicitud = _mapper.Map<Solicitudes>(solicitudDto);
+
+            nuevaSolicitud.EstadoSolicitudId = (int)EstadosSolicitud.Pendiente;
+            nuevaSolicitud.Fecha = DateTime.Now;
+            nuevaSolicitud.FechaViaje = solicitudDto.FechaViaje;
+            nuevaSolicitud.ViajeEncabezadoId = null;
+
+            try
+            {
+                _unitOfWork.Repository<Solicitudes>().Add(nuevaSolicitud);
+                if (!await _unitOfWork.SaveChangesAsync())
+                {
+                    return new Response<int> { Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "la").Replace("@entidad", "solicitud") };
+                }
+
+                return new Response<int> { Exitoso = true, Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Solicitud") };
+            }
+            catch (Exception)
+            {
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "la").Replace("@entidad", "solicitud") };
+            }
+        }
+
+
+        public async Task<Response<int>> ProcesarSolicitud(ProcesarSolicitudDto solicitudDto)
+        {
+            var solicitud = await _unitOfWork.Repository<Solicitudes>()
+                .FirstOrDefaultAsync(s => s.SolicitudId == solicitudDto.SolicitudId);
+
+            if (solicitud == null)
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Solicitud") };
+
+            if (solicitud.EstadoSolicitudId == (int)EstadosSolicitud.Aceptado)
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.ACEPTADA };
+
+            bool agregarSiguiente = solicitud.AgregarViajeSiguiente;
+
+            var viajeDisponible = await BuscarViajeDisponible(solicitud.FechaViaje, solicitud.SucursalId, agregarSiguiente);
+
+            if (viajeDisponible == null)
+            {
+                if (DateTime.UtcNow.Hour >= 17)
+                {
+                    return await RechazarSolicitud(solicitudDto.SolicitudId);
+                }
+
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "viajes") };
+            }
+
+            solicitud.ViajeEncabezadoId = viajeDisponible.ViajeEncabezadoId;
+            solicitud.FechaViaje = viajeDisponible.FechaHora;
+
+            var sucursal = await _unitOfWork.Repository<Sucursales>()
+                .FirstOrDefaultAsync(s => s.SucursalId == solicitud.SucursalId);
+
+            if (sucursal == null)
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal") };
+
+            var viajeDetalles = await _unitOfWork.Repository<ViajesDetalle>().AsQueryable()
+                .Where(d => d.ViajeEncabezadoId == solicitud.ViajeEncabezadoId)
+                .Select(d => new ColaboradorUbicacionDto
+                {
+                    ColaboradorId = d.ColaboradorId,
+                    Latitud = d.Colaborador.Latitud,
+                    Longitud = d.Colaborador.Longitud
+                })
+                .ToListAsync();
+
+            var validacionDistancia = await _viajeDomainService.ValidarDistanciaEnViaje(solicitud.ViajeEncabezado, sucursal, viajeDetalles, solicitud.UsuarioId);
+            if (!validacionDistancia.Exitoso)
+                return validacionDistancia;
+
+            var resultadoAgregar = await AgregarColaboradorAViaje(solicitud.ViajeEncabezadoId.Value, solicitud.UsuarioId);
+            if (!resultadoAgregar.Exitoso)
+                return resultadoAgregar;
+
+            solicitud.EstadoSolicitudId = (int)EstadosSolicitud.Aceptado;
+            solicitud.UsuarioAprobadoId = solicitudDto.UsuarioAprobadoId;
+            solicitud.FechaAprobado = DateTime.UtcNow;
+
+            _unitOfWork.Repository<Solicitudes>().Update(solicitud);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new Response<int> { Exitoso = true, Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Solicitud") };
+        }
+
+        private async Task<ViajesEncabezado> BuscarViajeDisponible(DateTime fechaViaje, int sucursalId, bool agregarSiguiente)
+        {
+            var viajes = await _unitOfWork.Repository<ViajesEncabezado>()
+                .AsQueryable()
+                .Where(v => v.FechaHora.Date == fechaViaje.Date && v.SucursalId == sucursalId)
+                .OrderBy(v => v.FechaHora)
+                .ToListAsync();
+
+            var viaje = viajes.FirstOrDefault(v => v.FechaHora >= fechaViaje && v.FechaHora <= fechaViaje.AddMinutes(30));
+
+            if (viaje == null && agregarSiguiente)
+            {
+                viaje = viajes.FirstOrDefault(v => v.FechaHora > fechaViaje);
+            }
+
+            return viaje;
+        }
+
+
+        private async Task<Response<int>> AgregarColaboradorAViaje(int viajeId, int usuarioId)
+        {
+            var detalle = new ViajesDetalle
+            {
+                ViajeEncabezadoId = viajeId,
+                ColaboradorId = usuarioId
+            };
+
+            _unitOfWork.Repository<ViajesDetalle>().Add(detalle);
+            if (!await _unitOfWork.SaveChangesAsync())
+            {
+                return new Response<int> { Exitoso = false, Mensaje = "Error al agregar el colaborador al viaje." };
+            }
+
+            return new Response<int> { Exitoso = true, Mensaje = "Colaborador agregado exitosamente." };
+        }
+
+        public async Task<Response<int>> RechazarSolicitud(int solicitudId)
+        {
+            var solicitud = await _unitOfWork.Repository<Solicitudes>()
+                .FirstOrDefaultAsync(s => s.SolicitudId == solicitudId);
+
+            if (solicitud == null)
+                return new Response<int> { Exitoso = false, Mensaje = "La solicitud no existe." };
+
+            if (solicitud.EstadoSolicitudId == (int)EstadosSolicitud.Aceptado)
+                return new Response<int> { Exitoso = false, Mensaje = "No se puede rechazar una solicitud que ya fue aceptada." };
+
+            solicitud.EstadoSolicitudId = (int)EstadosSolicitud.Rechazado;
+            _unitOfWork.Repository<Solicitudes>().Update(solicitud);
+
+            if (!await _unitOfWork.SaveChangesAsync())
+            {
+                return new Response<int> { Exitoso = false, Mensaje = "Error al rechazar la solicitud." };
+            }
+
+            return new Response<int> { Exitoso = true, Mensaje = "Solicitud rechazada exitosamente." };
+        }
+
+        public async Task<Response<int>> RegistrarViajePorSolicitud(ViajeDto viajeDto, int solicitudId)
+        {
+            var resultadoViaje = await RegistrarViaje(viajeDto);
+
+            if (!resultadoViaje.Exitoso)
+                return resultadoViaje;
+
+            var solicitud = await _unitOfWork.Repository<Solicitudes>()
+                .FirstOrDefaultAsync(s => s.SolicitudId == solicitudId);
+
+            if (solicitud == null)
+                return new Response<int> { Exitoso = false, Mensaje = "La solicitud no existe." };
+
+            solicitud.ViajeEncabezadoId = resultadoViaje.Data;
+            solicitud.EstadoSolicitudId = (int)EstadosSolicitud.Aceptado;
+            solicitud.UsuarioAprobadoId = viajeDto.UsuarioCreacionId;
+            solicitud.FechaAprobado = DateTime.UtcNow;
+
+            _unitOfWork.Repository<Solicitudes>().Update(solicitud);
+            await _unitOfWork.SaveChangesAsync();
+
+            return new Response<int> { Exitoso = true, Mensaje = "Viaje creado y solicitud procesada exitosamente." };
+        }
+
+        public async Task<Response<int>> CancelarSolicitud(CancelarSolicitudViajeDto solicitudDto)
+        {
+            var validacionResultado = await _viajeDomainService.ValidarDatosCancelarSolicitud(solicitudDto);
+            if (!validacionResultado.Exitoso)
+                return validacionResultado;
+
+            var nuevaSolicitud = _mapper.Map<Solicitudes>(solicitudDto);
+            nuevaSolicitud.EstadoSolicitudId = (int)EstadosSolicitud.Pendiente;
+            nuevaSolicitud.Fecha = DateTime.UtcNow;
+
+            try
+            {
+                _unitOfWork.Repository<Solicitudes>().Add(nuevaSolicitud);
+                if (!await _unitOfWork.SaveChangesAsync())
+                {
+                    return new Response<int>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "la").Replace("@entidad", "solicitud de cancelación")
+                    };
+                }
+                return new Response<int>
+                {
+                    Exitoso = true,
+                    Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Solicitud de cancelación")
+                };
+            }
+            catch (Exception)
+            {
+                return new Response<int>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "la").Replace("@entidad", "solicitud de cancelación")
+                };
+            }
+        }
+
+        public async Task<Response<int>> ProcesarCancelacionSolicitud(ProcesarCancelarSolicitudDto solicitudDto)
+        {
+            var solicitud = await _unitOfWork.Repository<Solicitudes>()
+                .FirstOrDefaultAsync(s => s.SolicitudId == solicitudDto.SolicitudId);
+
+            if (solicitud == null)
+                return new Response<int> { Exitoso = false, Mensaje = "La solicitud de cancelación no existe." };
+
+            if (solicitud.EstadoSolicitudId == (int)EstadosSolicitud.Aceptado)
+                return new Response<int> { Exitoso = false, Mensaje = "La solicitud de cancelación ya fue procesada." };
+
+            var viaje = await _unitOfWork.Repository<ViajesEncabezado>()
+                .FirstOrDefaultAsync(v => v.ViajeEncabezadoId == solicitud.ViajeEncabezadoId);
+
+            if (viaje == null)
+                return new Response<int> { Exitoso = false, Mensaje = "El viaje asociado a la solicitud no existe." };
+
+            var colaboradorDetalle = await _unitOfWork.Repository<ViajesDetalle>()
+                .FirstOrDefaultAsync(vd => vd.ViajeEncabezadoId == viaje.ViajeEncabezadoId && vd.ColaboradorId == solicitud.UsuarioId);
+
+            if (colaboradorDetalle == null)
+                return new Response<int> { Exitoso = false, Mensaje = "El colaborador no está en el viaje." };
+
+            var distanciaColaborador = await _unitOfWork.Repository<ColaboradoresPorSucursal>()
+                .AsQueryable()
+                .Where(cs => cs.ColaboradorId == solicitud.UsuarioId && cs.SucursalId == viaje.SucursalId)
+                .Select(cs => cs.DistanciaKm)
+                .FirstOrDefaultAsync();
+
+            if (distanciaColaborador == null)
+                return new Response<int> { Exitoso = false, Mensaje = "No se pudo determinar la distancia del colaborador." };
+
+            if (viaje.DistanciaTotalKm - distanciaColaborador <= 0)
+                return new Response<int> { Exitoso = false, Mensaje = "No se puede eliminar este colaborador, ya que dejaría el viaje sin distancia." };
+
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
+            {
+                viaje.DistanciaTotalKm -= distanciaColaborador;
+                viaje.Total = viaje.DistanciaTotalKm * viaje.TarifaTransportista;
+                _unitOfWork.Repository<ViajesEncabezado>().Update(viaje);
+
+                colaboradorDetalle.Estado = false;
+                _unitOfWork.Repository<ViajesDetalle>().Update(colaboradorDetalle);
+
+                solicitud.EstadoSolicitudId = (int)EstadosSolicitud.Aceptado;
+                solicitud.FechaAprobado = DateTime.UtcNow;
+                solicitud.UsuarioAprobadoId = solicitudDto.UsuarioAprobadoId;
+                _unitOfWork.Repository<Solicitudes>().Update(solicitud);
+
+                await _unitOfWork.SaveChangesAsync();
+                await _unitOfWork.CommitAsync();
+
+                return new Response<int> { Exitoso = true, Mensaje = "La solicitud de cancelación fue aceptada y el colaborador fue eliminado del viaje." };
+            }
+            catch (Exception)
+            {
+                await _unitOfWork.RollBackAsync();
+                return new Response<int> { Exitoso = false, Mensaje = "Error al procesar la solicitud de cancelación." };
+            }
+        }
 
         #endregion
     }

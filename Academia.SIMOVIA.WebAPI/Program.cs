@@ -43,13 +43,13 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<SIMOVIAContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionStringFromENV("SIMOVIA_GFS")
             ));
 
-// Servicios de Aplicación
 builder.Services.AddTransient<AccesoService>();
 builder.Services.AddTransient<AccesoDomainService>();
 builder.Services.AddTransient<GeneralService>();
 builder.Services.AddTransient<GeneralDomainService>();
 builder.Services.AddTransient<ViajeService>();
 builder.Services.AddTransient<ViajeDomainService>();
+builder.Services.AddTransient<UbicacionService>();
 
 builder.Services.AddScoped<UnitOfWorkBuilder>();
 
