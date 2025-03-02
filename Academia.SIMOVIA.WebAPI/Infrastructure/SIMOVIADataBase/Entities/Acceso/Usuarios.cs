@@ -19,6 +19,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
             PantallasModificadas = new HashSet<Pantallas>();
             RolesCreados = new HashSet<Roles>();
             RolesModificados = new HashSet<Roles>();
+            ColaboradoresPorSucursalModificadas = new HashSet<ColaboradoresPorSucursal>();
             SucursalesCreadas = new HashSet<Sucursales>();
             SucursalesModificadas = new HashSet<Sucursales>();
             TransportistasCreados = new HashSet<Transportistas>();
@@ -73,6 +74,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
         public virtual ICollection<Pantallas> PantallasModificadas { get; set; }
         public virtual ICollection<Roles> RolesCreados { get; set; }
         public virtual ICollection<Roles> RolesModificados { get; set; }   
+        public virtual ICollection<ColaboradoresPorSucursal> ColaboradoresPorSucursalModificadas { get; set; }
         public virtual ICollection<Sucursales> SucursalesCreadas { get; set; }   
         public virtual ICollection<Sucursales> SucursalesModificadas { get; set; }   
         public virtual ICollection<Transportistas> TransportistasCreados { get; set; }   

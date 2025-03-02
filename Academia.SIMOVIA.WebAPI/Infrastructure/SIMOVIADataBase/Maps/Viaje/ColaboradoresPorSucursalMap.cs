@@ -28,6 +28,23 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje
                    .HasColumnName("Sucursal_Id")
                    .IsRequired();
 
+            builder.Property(x => x.UsuarioModificacionId)
+                   .HasColumnName("Usuario_Modificacion")
+                   .IsRequired(false);
+
+            builder.Property(x => x.FechaModificacion)
+                   .HasColumnName("Fecha_Modificacion")
+                   .IsRequired(false);
+
+            builder.Property(x => x.Estado)
+                   .HasColumnName("Estado")
+                   .HasDefaultValue(true)
+                   .IsRequired();
+
+            builder.HasOne(x => x.UsuarioModificacion)
+                   .WithMany(u => u.ColaboradoresPorSucursalModificadas)
+                   .HasForeignKey(x => x.UsuarioModificacionId)
+                   .OnDelete(DeleteBehavior.Restrict);
             #region Relaciones uno a muchos
             builder.HasOne(x => x.Colaborador)
                    .WithMany(c => c.ColaboradoresPorSucursal)

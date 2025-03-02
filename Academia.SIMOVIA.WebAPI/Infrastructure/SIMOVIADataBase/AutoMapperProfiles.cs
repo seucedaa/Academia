@@ -48,6 +48,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
             CreateMap<ColaboradorDto, Colaboradores>()
              .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) =>  DateTime.UtcNow))
              .ReverseMap();
+            CreateMap<SucursalesPorColaboradorDto, ColaboradoresPorSucursal>().ReverseMap();
             CreateMap<ColaboradorPorSucursalDto, ColaboradoresPorSucursal>();
             CreateMap<Colaboradores, ColaboradoresPorSucursalDto>()
     .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombres + " " + src.Apellidos))

@@ -29,10 +29,10 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             var resultado = await _viajeService.RegistrarViaje(viajeDto);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
-        [HttpGet("Ruta/{viajeEncabezadoId}")]
-        public async Task<IActionResult> ObtenerRutaViaje([FromRoute] int viajeEncabezadoId)
+        [HttpGet("ObtenerViaje/{viajeEncabezadoId}")]
+        public async Task<IActionResult> ObtenerViaje([FromRoute] int viajeEncabezadoId)
         {
-            var resultado = await _viajeService.ObtenerRutaViaje(viajeEncabezadoId);
+            var resultado = await _viajeService.ObtenerViaje(viajeEncabezadoId);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 

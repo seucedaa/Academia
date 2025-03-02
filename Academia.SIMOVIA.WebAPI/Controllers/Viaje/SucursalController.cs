@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Academia.SIMOVIA.WebAPI._Features.Viaje;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
+using Academia.SIMOVIA.WebAPI._Features.General;
 
 namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
 {
@@ -36,6 +37,12 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
+        [HttpGet("ObtenerSucursal/{sucursalId}")]
+        public async Task<IActionResult> ObtenerSucursal([FromRoute] int sucursalId)
+        {
+            var resultado = await _viajeService.ObtenerSucursal(sucursalId);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
 
         [HttpPost("RegistrarSucursal")]
         public async Task<IActionResult> RegistrarSucursal([FromBody] SucursalDto SucursalDto)

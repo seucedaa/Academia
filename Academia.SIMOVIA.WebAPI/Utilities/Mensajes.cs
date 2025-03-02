@@ -21,9 +21,12 @@
         public const string INGRESAR_VALIDO = "Ingrese @campo válido.";
         public const string DESACTIVADO = "@Entidad desactivado.";
         public const string CREADO_EXITOSAMENTE = "@Entidad registrado exitosamente.";
+        public const string ASIGNADOS_EXITOSAMENTE = "@Entidad asignados exitosamente.";
         public const string ERROR_CREAR = "Ha ocurrido un error al registrar @articulo @entidad.";
+        public const string ERROR_ASIGNAR= "Ha ocurrido un error al asignar @articulo @entidad.";
+        public const string ERROR_RECHAZAR= "Ha ocurrido un error al rechazar @articulo @entidad.";
         public const string NO_EXISTE = "@Entidad no existe.";
-        public const string ELIMINADO_EXITOSAMENTE = "@Entidad eliminado exitosamente.";
+        public const string RECHAZADO_EXITOSAMENTE = "@Entidad rechazada exitosamente.";
         public const string ERROR_LISTADO = "Error al obtener los @entidad.";
         public const string ERROR_LISTA = "Error al obtener las @entidad.";
         public const string ERROR_INDEPENDIENTE = "Error al obtener el @entidad.";

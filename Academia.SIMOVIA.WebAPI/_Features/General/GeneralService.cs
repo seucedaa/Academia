@@ -213,6 +213,54 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 };
             }
         }
+
+        public async Task<Response<ColaboradoresDto>> ObtenerColaborador(int colaboradorId)
+        {
+            try
+            {
+                var colaborador = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
+                    .Where(c => c.Id == colaboradorId && c.Estado)
+                    .Include(c => c.EstadoCivil)
+                    .Include(c => c.Cargo)
+                    .Include(c => c.Ciudad)
+                    .FirstOrDefaultAsync();
+
+                if (colaborador == null)
+                {
+                    return new Response<ColaboradoresDto>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Colaborador")
+                    };
+                }
+
+                var colaboradorDto = _mapper.Map<ColaboradoresDto>(colaborador);
+
+                return new Response<ColaboradoresDto>
+                {
+                    Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_INDEPENDIENTE.Replace("@Entidad", "Colaborador"),
+                    Data = colaboradorDto
+                };
+            }
+            catch (DbUpdateException)
+            {
+                return new Response<ColaboradoresDto>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_INDEPENDIENTE.Replace("@entidad", "colaborador")
+                };
+            }
+            catch (Exception)
+            {
+                return new Response<ColaboradoresDto>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_GENERAL
+                };
+            }
+        }
+
         public async Task<Response<List<ColaboradoresPorSucursalDto>>> ObtenerColaboradoresDisponibles(int sucursalId, DateTime? fecha)
         {
             try
@@ -340,6 +388,22 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     Exitoso = false,
                     Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")
                 };
+            }
+        }
+
+        private async Task<Response<int>> ActualizarSucursalesAsignadas(SucursalesPorColaboradorDto sucursalesPorColaboradorDto)
+        {
+            var nuevaSucursalAsignada = _mapper.Map<ColaboradoresPorSucursal>(sucursalesPorColaboradorDto);
+
+            try
+            {
+                _unitOfWork.Repository<ColaboradoresPorSucursal>().Add(nuevaSucursalAsignada);
+                await _unitOfWork.SaveChangesAsync();
+                return new Response<int> { Exitoso = true, Mensaje = Mensajes.ASIGNADOS_EXITOSAMENTE.Replace("@Entidad", "Sucursales") };
+            }
+            catch (Exception)
+            {
+                return new Response<int> { Exitoso = false, Mensaje = Mensajes.ERROR_ASIGNAR.Replace("@articulo","la").Replace("@entidad", "sucursal") };
             }
         }
 

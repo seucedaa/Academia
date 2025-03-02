@@ -21,18 +21,29 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             var resultado = await _viajeService.ObtenerSolicitudes();
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
+        [HttpGet("ObtenerSolicitudesViajeAsignado")]
+        public async Task<IActionResult> ObtenerSolicitudesViajeAsignadoObtenerSolicitudes()
+        {
+            var resultado = await _viajeService.ObtenerSolicitudesViajeAsignado();
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
+        [HttpGet("ObtenerSolicitudesViajeNoAsignado")]
+        public async Task<IActionResult> ObtenerSolicitudesViajeNoAsignado()
+        {
+            var resultado = await _viajeService.ObtenerSolicitudesViajeNoAsignado();
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
+        [HttpGet("ObtenerSolicitudesCancelacionViaje")]
+        public async Task<IActionResult> ObtenerSolicitudesCancelacionViaje()
+        {
+            var resultado = await _viajeService.ObtenerSolicitudesCancelacionViaje();
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
 
         [HttpPost("RegistrarSolicitud")]
         public async Task<IActionResult> RegistrarSolicitud([FromBody] SolicitudDto solicitudDto)
         {
             var resultado = await _viajeService.RegistrarSolicitud(solicitudDto);
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
-
-        [HttpPut("ProcesarSolicitud")]
-        public async Task<IActionResult> ProcesarSolicitud([FromBody] ProcesarSolicitudDto solicitudDto)
-        {
-            var resultado = await _viajeService.ProcesarSolicitud(solicitudDto);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
@@ -50,15 +61,8 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
-
-        [HttpPost("CancelarSolicitud")]
-        public async Task<IActionResult> CancelarSolicitud([FromBody] CancelarSolicitudViajeDto solicitudDto)
-        {
-            var resultado = await _viajeService.CancelarSolicitud(solicitudDto);
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
-        [HttpPost("ProcesarCancelacionSolicitud")]
-        public async Task<IActionResult> ProcesarCancelacionSolicitud([FromBody] ProcesarCancelarSolicitudDto solicitudDto)
+        [HttpPost("AceptarCancelarViaje")]
+        public async Task<IActionResult> AceptarCancelarViaje([FromBody] ProcesarCancelarSolicitudDto solicitudDto)
         {
             var resultado = await _viajeService.ProcesarCancelacionSolicitud(solicitudDto);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
