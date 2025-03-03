@@ -21,24 +21,24 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             var resultado = await _viajeService.ObtenerSolicitudes();
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
-        [HttpGet("ObtenerSolicitudesViajeAsignado")]
-        public async Task<IActionResult> ObtenerSolicitudesViajeAsignadoObtenerSolicitudes()
-        {
-            var resultado = await _viajeService.ObtenerSolicitudesViajeAsignado();
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
-        [HttpGet("ObtenerSolicitudesViajeNoAsignado")]
-        public async Task<IActionResult> ObtenerSolicitudesViajeNoAsignado()
-        {
-            var resultado = await _viajeService.ObtenerSolicitudesViajeNoAsignado();
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
-        [HttpGet("ObtenerSolicitudesCancelacionViaje")]
-        public async Task<IActionResult> ObtenerSolicitudesCancelacionViaje()
-        {
-            var resultado = await _viajeService.ObtenerSolicitudesCancelacionViaje();
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
+        //[HttpGet("ObtenerSolicitudesViajeAsignado")]
+        //public async Task<IActionResult> ObtenerSolicitudesViajeAsignadoObtenerSolicitudes()
+        //{
+        //    var resultado = await _viajeService.ObtenerSolicitudesViajeAsignado();
+        //    return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        //}
+        //[HttpGet("ObtenerSolicitudesViajeNoAsignado")]
+        //public async Task<IActionResult> ObtenerSolicitudesViajeNoAsignado()
+        //{
+        //    var resultado = await _viajeService.ObtenerSolicitudesViajeNoAsignado();
+        //    return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        //}
+        //[HttpGet("ObtenerSolicitudesCancelacionViaje")]
+        //public async Task<IActionResult> ObtenerSolicitudesCancelacionViaje()
+        //{
+        //    var resultado = await _viajeService.ObtenerSolicitudesCancelacionViaje();
+        //    return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        //}
 
         [HttpPost("RegistrarSolicitud")]
         public async Task<IActionResult> RegistrarSolicitud([FromBody] SolicitudDto solicitudDto)

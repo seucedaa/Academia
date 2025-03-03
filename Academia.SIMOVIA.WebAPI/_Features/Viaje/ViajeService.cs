@@ -275,7 +275,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             try
             {
                 var sucursal = await _unitOfWork.Repository<Sucursales>().AsQueryable()
-                 .Where(s => s.Id == sucursalId && s.Estado)
+                 .Where(s => s.SucursalId == sucursalId && s.Estado)
                  .Include(c => c.Ciudad)
                  .FirstOrDefaultAsync();
 

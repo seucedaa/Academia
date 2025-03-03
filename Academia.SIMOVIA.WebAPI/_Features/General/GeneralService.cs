@@ -219,7 +219,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             try
             {
                 var colaborador = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
-                    .Where(c => c.Id == colaboradorId && c.Estado)
+                    .Where(c => c.ColaboradorId == colaboradorId && c.Estado)
                     .Include(c => c.EstadoCivil)
                     .Include(c => c.Cargo)
                     .Include(c => c.Ciudad)

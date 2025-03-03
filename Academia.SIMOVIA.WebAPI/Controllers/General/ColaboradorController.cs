@@ -46,11 +46,11 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
             var resultado = await _generalService.RegistrarColaborador(colaboradorDto);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
-        [HttpPost("ActualizarSucursalesAsignadas")]
-        public async Task<IActionResult> ActualizarSucursalesAsignadas([FromBody] ColaboradorPorSucursalDto colaboradorPorSucursalDto)
-        {
-            var resultado = await _generalService.ActualizarSucursalesAsignadas(colaboradorPorSucursalDto);
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
+        //[HttpPost("ActualizarSucursalesAsignadas")]
+        //public async Task<IActionResult> ActualizarSucursalesAsignadas([FromBody] ColaboradorPorSucursalDto colaboradorPorSucursalDto)
+        //{
+        //    var resultado = await _generalService.ActualizarSucursalesAsignadas(colaboradorPorSucursalDto);
+        //    return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        //}
     }
 }
