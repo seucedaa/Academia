@@ -49,16 +49,17 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
              .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom((src, dest) =>  DateTime.UtcNow))
              .ReverseMap();
             CreateMap<SucursalesPorColaboradorDto, ColaboradoresPorSucursal>().ReverseMap();
-            CreateMap<ColaboradorPorSucursalDto, ColaboradoresPorSucursal>();
+            CreateMap<ColaboradorPorSucursalDto, ColaboradoresPorSucursal>()
+                .ForMember(cps => cps.ColaboradorPorSucursalId, ent => ent.Ignore());
+
             CreateMap<Colaboradores, ColaboradoresPorSucursalDto>()
-    .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombres + " " + src.Apellidos))
-    .ForMember(dest => dest.CiudadDescripcion, opt => opt.MapFrom(src => src.Ciudad.Descripcion))
-    .ForMember(dest => dest.DistanciaKm, opt => opt.MapFrom((src, dest, destMember, context) =>
-        context.Items.ContainsKey("Distancias")
-            ? ((Dictionary<int, decimal>)context.Items["Distancias"]).GetValueOrDefault(src.ColaboradorId, 0)
-            : 0
-    ))
-    .ReverseMap();
+             .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombres + " " + src.Apellidos))
+             .ForMember(dest => dest.CiudadDescripcion, opt => opt.MapFrom(src => src.Ciudad.Descripcion))
+             .ForMember(dest => dest.DistanciaKm, opt => opt.MapFrom((src, dest, destMember, context) =>
+                 context.Items.ContainsKey("Distancias")
+                     ? ((Dictionary<int, decimal>)context.Items["Distancias"]).GetValueOrDefault(src.ColaboradorId, 0)
+                     : 0))
+             .ReverseMap();
 
             #endregion
 

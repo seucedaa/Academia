@@ -15,6 +15,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
     {
         public Response<string> ValidarInicioSesion(InicioSesionDto login, Usuarios usuario)
         {
+            Response<string> validacionLongitudes = ValidarLongitudesCampos(login);
+            if (!validacionLongitudes.Exitoso)
+                return validacionLongitudes;
+
             if (string.IsNullOrEmpty(login.Usuario) || string.IsNullOrEmpty(login.Clave))
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.CREDENCIALES_OBLIGATORIAS };
 
@@ -33,6 +37,25 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 
             return new Response<string> { Exitoso = true };
         }
+
+        private Response<string> ValidarLongitudesCampos(InicioSesionDto login)
+        {
+            var errores = new List<string>();
+
+            if (login.Usuario.Length > 80)
+                errores.Add(Mensajes.LONGITUD_INVALIDA.Replace("@campo", "Usuario").Replace("@longitud", "80"));
+
+            if (login.Clave.Length > 64)
+                errores.Add(Mensajes.LONGITUD_INVALIDA.Replace("@campo", "Clave").Replace("@longitud", "64"));
+
+            if (errores.Any())
+            {
+                return new Response<string> { Exitoso = false, Mensaje = string.Join(" ", errores) };
+            }
+
+            return new Response<string> { Exitoso = true };
+        }
+
 
     }
 }

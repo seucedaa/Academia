@@ -1,4 +1,5 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
+using Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements;
 using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
@@ -10,6 +11,8 @@ using Academia.SIMOVIA.WebAPI.Utilities;
 using AutoMapper;
 using Farsiman.Infraestructure.Core.Entity.Standard;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Academia.SIMOVIA.WebAPI._Features.General
 {
@@ -332,49 +335,74 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 };
             }
         }
-
-        public async Task<Response<int>> RegistrarColaborador(ColaboradorDto colaboradorDto)
+        private async Task<RegistroColaboradorDomainRequirement> CrearRegistroColaboradorDomainRequirement(Colaboradores colaborador)
         {
-            
-            var validacion = await _generalDomainService.ValidarRegistrarDatosColaborador(colaboradorDto);
-            if (!validacion.Exitoso)
-                return validacion;
+            bool dniExiste = await DatabaseHelper.ExisteRegistroEnBD<Colaboradores>(_unitOfWorkBuilder, c => c.DNI == colaborador.DNI);
+            bool correoExiste = await DatabaseHelper.ExisteRegistroEnBD<Colaboradores>(_unitOfWorkBuilder, c => c.CorreoElectronico == colaborador.CorreoElectronico);
+            bool estadoCivilExiste = await DatabaseHelper.ExisteRegistroEnBD<EstadosCiviles>(_unitOfWorkBuilder, e => e.EstadoCivilId == colaborador.EstadoCivilId);
+            bool cargoExiste = await DatabaseHelper.ExisteRegistroEnBD<Cargos>(_unitOfWorkBuilder, c => c.CargoId == colaborador.CargoId);
+            bool ciudadExiste = await DatabaseHelper.ExisteRegistroEnBD<Ciudades>(_unitOfWorkBuilder, c => c.CiudadId == colaborador.CiudadId);
+            bool usuarioExiste = await DatabaseHelper.ExisteRegistroEnBD<Usuarios>(_unitOfWorkBuilder, u=> u.UsuarioId == colaborador.UsuarioCreacionId);
 
-            var validacionDatosBd = await ValidarDatosColaborador(colaboradorDto);
-            if (!validacionDatosBd.Exitoso)
-                return validacionDatosBd;
+            var sucursalIds = colaborador.ColaboradoresPorSucursal.Select(s => s.SucursalId).Distinct().ToList();
+            var sucursalesExistentes = await _unitOfWork.Repository<Sucursales>()
+                .AsQueryable()
+                .Where(s => sucursalIds.Contains(s.SucursalId))
+                .Select(s => s.SucursalId)
+                .ToListAsync();
+
+            var sucursalesNoExistentes = sucursalIds.Except(sucursalesExistentes).ToList();
+
+            return RegistroColaboradorDomainRequirement.Fill(dniExiste, correoExiste, estadoCivilExiste, cargoExiste, ciudadExiste, usuarioExiste, sucursalesNoExistentes);
+        }
+
+
+        public async Task<Response<Colaboradores>> RegistrarColaborador(ColaboradorDto colaboradorDto)
+        {
+            var colaboradorEntidad = _mapper.Map<Colaboradores>(colaboradorDto);
+
+            colaboradorEntidad.ColaboradoresPorSucursal = _mapper.Map<List<ColaboradoresPorSucursal>>(colaboradorDto.Sucursales)
+                 ?? new List<ColaboradoresPorSucursal>();
+
+            var domainRequeriment = await CrearRegistroColaboradorDomainRequirement(colaboradorEntidad);
+            var validacionDominio = _generalDomainService.ValidarColaboradorParaRegistro(colaboradorEntidad, domainRequeriment);
+
+            if (!validacionDominio.Exitoso)
+                return validacionDominio;
 
             await _unitOfWork.BeginTransactionAsync();
             try
             {
-                var nuevoColaborador = _mapper.Map<Colaboradores>(colaboradorDto);
-                _unitOfWork.Repository<Colaboradores>().Add(nuevoColaborador);
+                _unitOfWork.Repository<Colaboradores>().Add(colaboradorEntidad);
 
                 if (!await _unitOfWork.SaveChangesAsync()) 
                 {
                     await _unitOfWork.RollBackAsync();
-                    return new Response<int>
+                    return new Response<Colaboradores>
                     {
                         Exitoso = false,
                         Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "el").Replace("@entidad", "colaborador")
                     };
                 }
 
-                int colaboradorId = nuevoColaborador.ColaboradorId;
+                int colaboradorId = colaboradorEntidad.ColaboradorId;
 
-                var colaboradorSucursales = _mapper.Map<List<ColaboradoresPorSucursal>>(colaboradorDto.Sucursales);
-                colaboradorSucursales.ForEach(cs => cs.ColaboradorId = colaboradorId);
+                colaboradorEntidad.ColaboradoresPorSucursal.ToList().ForEach(cs =>
+                {
+                    cs.ColaboradorId = colaboradorId;
+                    cs.ColaboradorPorSucursalId = 0;
+                });
 
-                _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(colaboradorSucursales);
+                _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(colaboradorEntidad.ColaboradoresPorSucursal);
                 if (!await _unitOfWork.SaveChangesAsync()) 
                 {
                     await _unitOfWork.RollBackAsync();
-                    return new Response<int>{ Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")};
+                    return new Response<Colaboradores>{ Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")};
                 }
 
                 await _unitOfWork.CommitAsync();
 
-                return new Response<int>
+                return new Response<Colaboradores>
                 {
                     Exitoso = true,
                     Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Colaborador"),
@@ -383,7 +411,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             catch (Exception)
             {
                 await _unitOfWork.RollBackAsync();
-                return new Response<int>
+                return new Response<Colaboradores>
                 {
                     Exitoso = false,
                     Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")
@@ -391,7 +419,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             }
         }
 
-        private async Task<Response<int>> ActualizarSucursalesAsignadas(SucursalesPorColaboradorDto sucursalesPorColaboradorDto)
+        private async Task<Response<ColaboradoresPorSucursal>> ActualizarSucursalesAsignadas(SucursalesPorColaboradorDto sucursalesPorColaboradorDto)
         {
             var nuevaSucursalAsignada = _mapper.Map<ColaboradoresPorSucursal>(sucursalesPorColaboradorDto);
 
@@ -399,15 +427,15 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             {
                 _unitOfWork.Repository<ColaboradoresPorSucursal>().Add(nuevaSucursalAsignada);
                 await _unitOfWork.SaveChangesAsync();
-                return new Response<int> { Exitoso = true, Mensaje = Mensajes.ASIGNADOS_EXITOSAMENTE.Replace("@Entidad", "Sucursales") };
+                return new Response<ColaboradoresPorSucursal> { Exitoso = true, Mensaje = Mensajes.ASIGNADOS_EXITOSAMENTE.Replace("@Entidad", "Sucursales") };
             }
             catch (Exception)
             {
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.ERROR_ASIGNAR.Replace("@articulo","la").Replace("@entidad", "sucursal") };
+                return new Response<ColaboradoresPorSucursal> { Exitoso = false, Mensaje = Mensajes.ERROR_ASIGNAR.Replace("@articulo","la").Replace("@entidad", "sucursal") };
             }
         }
 
-        private async Task<Response<int>> ValidarDatosColaborador(ColaboradorDto colaboradorDto)
+        private async Task<Response<Colaboradores>> ValidarDatosColaborador(ColaboradorDto colaboradorDto)
         {
             bool dniExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.DNI == colaboradorDto.DNI);
             bool correoExiste = await _unitOfWork.Repository<Colaboradores>().AsQueryable().AnyAsync(c => c.CorreoElectronico == colaboradorDto.CorreoElectronico);
@@ -422,7 +450,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 string mensaje = camposDuplicados.Count == 1 ? Mensajes.CAMPO_EXISTENTE.Replace("@Campo", camposDuplicados.First())
                     : Mensajes.CAMPOS_EXISTENTES.Replace("@Campos", string.Join(", ", camposDuplicados));
 
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+                return new Response<Colaboradores> { Exitoso = false, Mensaje = mensaje };
             }
 
             bool estadoCivilExiste = await _unitOfWork.Repository<EstadosCiviles>().AsQueryable().AnyAsync(ec => ec.EstadoCivilId == colaboradorDto.EstadoCivilId);
@@ -442,7 +470,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 string mensaje = camposInvalidos.Count == 1 ? Mensajes.NO_EXISTE.Replace("@Entidad", camposInvalidos.First())
                     : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", string.Join(", ", camposInvalidos));
 
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+                return new Response<Colaboradores> { Exitoso = false, Mensaje = mensaje };
             }
 
             var sucursalIds = colaboradorDto.Sucursales.Select(s => s.SucursalId).Distinct().ToList();
@@ -461,10 +489,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     ? Mensajes.NO_EXISTE.Replace("@Entidad", $"Sucursal ID {sucursalesNoExistentes.First()}")
                     : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", $"Sucursales ID {string.Join(", ", sucursalesNoExistentes)}");
 
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+                return new Response<Colaboradores> { Exitoso = false, Mensaje = mensaje };
             }
 
-            return new Response<int> { Exitoso = true };
+            return new Response<Colaboradores> { Exitoso = true };
         }
         #endregion
     }

@@ -8,6 +8,7 @@
         public const string ERROR_GENERAL = "Ha ocurrido un error al intentar procesar la solicitud.";
         public const string CREDENCIALES_OBLIGATORIAS = "Usuario y contraseña son obligatorios.";
         public const string INGRESAR_VALIDOS = "Ingrese datos válidos.";
+        public const string INGRESAR_UBICACION_VALIDA = "Ingrese latitud y logintud válidas.";
         public const string ERROR_DISTANCIA = "Error al calcular la distancia del viaje.";
         public const string VIAJES_NO_DISPONIBLES = "No hay viajes disponibles en la fecha y hora solicitada.";
         public const string SIN_PERMISO = "No tiene permiso para registrar un viaje.";
@@ -39,6 +40,8 @@
         public const string CAMPOS_NO_EXISTEN = "@Campos no existen.";
         public const string CAMPO_OBLIGATORIO = "@Campo es obligatorio.";
         public const string CAMPOS_OBLIGATORIOS = "@Campos son obligatorios.";
+        public const string LONGITUD_INVALIDA = "@campo excede la longitud permitida.";
+        public const string LONGITUDES_INVALIDAS = "@campos exceden la longitud permitida.";
         public const string COLABORADOR_NO_VALIDO = "El colaborador con ID @colaboradorId no pertenece a la sucursal o ya tiene un viaje asignado.";
         public const string COLABORADORES_NO_VALIDOS = "Los Colaboradores con ID @colaboradoresIds no pertenecen a la sucursal o ya tienen un viaje asignado.";
         public const string LISTADO_INDEPENDIENTE = "@Entidad listado exitosamente.";

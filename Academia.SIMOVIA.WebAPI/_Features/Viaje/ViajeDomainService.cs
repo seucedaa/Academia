@@ -12,12 +12,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 {
     public class ViajeDomainService
     {
-        private readonly UbicacionService _ubicacionService;
-        public ViajeDomainService(UbicacionService ubicacionService)
-        {
-            _ubicacionService = ubicacionService;
-        }
-        public async Task<Response<int>> ValidarRegistrarDatosSucursal(SucursalDto sucursalDto)
+        public async Task<Response<Sucursales>> ValidarRegistrarDatosSucursal(SucursalDto sucursalDto)
         {
             var camposFaltantes = new List<string>();
 
@@ -35,29 +30,35 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First())
                     : Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", string.Join(", ", camposFaltantes));
 
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+                return new Response<Sucursales> { Exitoso = false, Mensaje = mensaje };
             }
 
+            Response<Sucursales> datosIngresadosValidos = await ValidarDatosIngresadosSucursal(sucursalDto);
+
+            if(!datosIngresadosValidos.Exitoso)
+                return datosIngresadosValidos;
+
+            return new Response<Sucursales> { Exitoso = true };
+        }
+
+        public async Task<Response<Sucursales>> ValidarDatosIngresadosSucursal(SucursalDto sucursalDto)
+        {
+            Response<Sucursales> validacion = await ValidarRegistrarDatosSucursal(sucursalDto);
+            if(!validacion.Exitoso)
+                return validacion;
+
             if (!sucursalDto.Telefono.All(char.IsDigit))
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDO.Replace("@campo", "Teléfono") };
+                return new Response<Sucursales> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDO.Replace("@campo", "Teléfono") };
 
-            decimal latitud = sucursalDto.Latitud;
-            decimal longitud = sucursalDto.Longitud;
+            var validacionUbicacion = ValidarUbicacionInterna(sucursalDto.Latitud, sucursalDto.Longitud);
+            if (!validacionUbicacion.Exitoso)
+                return new Response<Sucursales> { Exitoso = false, Mensaje = validacionUbicacion.Mensaje };
 
-            if (latitud == 0 && longitud == 0)
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDOS };
-
-            if (latitud < -90 || latitud > 90)
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "latitud") };
-
-            if (longitud < -180 || longitud > 180)
-                return new Response<int> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "longitud") };
-
-            return new Response<int> { Exitoso = true };
+            return new Response<Sucursales> { Exitoso = true };
         }
 
 
-        public async Task<Response<int>> ValidarRegistrarDatosViaje(ViajeDto viajeDto)
+        public async Task<Response<ViajesEncabezado>> ValidarRegistrarDatosViaje(ViajesEncabezado viajeDto)
         {
             var camposFaltantes = new List<string>();
 
@@ -65,7 +66,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             if (viajeDto.SucursalId <= 0) camposFaltantes.Add("Sucursal");
             if (viajeDto.TransportistaId <= 0) camposFaltantes.Add("Transportista");
             if (viajeDto.UsuarioCreacionId <= 0) camposFaltantes.Add("Usuario Creación");
-            if (viajeDto.Colaboradores == null || !viajeDto.Colaboradores.Any()) camposFaltantes.Add("Colaboradores");
+            if (viajeDto.ViajesDetalle == null || !viajeDto.ViajesDetalle.Any()) camposFaltantes.Add("Colaboradores");
 
             if (camposFaltantes.Any())
             {
@@ -73,7 +74,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First())  
                     : Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", string.Join(", ", camposFaltantes)); 
 
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+                return new Response<ViajesEncabezado> { Exitoso = false, Mensaje = mensaje };
             }
 
             var fechaActual = DateTime.Today;
@@ -82,14 +83,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
             if (viajeDto.FechaHora < fechaMinima || viajeDto.FechaHora > fechaMaxima)
             {
-                return new Response<int>
+                return new Response<ViajesEncabezado>
                 {
                     Exitoso = false,
                     Mensaje = Mensajes.INGRESAR_VALIDO.Replace("@campo", "Fecha y Hora de Viaje")
                 };
             }
 
-            var colaboradoresDuplicados = viajeDto.Colaboradores
+            var colaboradoresDuplicados = viajeDto.ViajesDetalle
                 .GroupBy(c => c.ColaboradorId)
                 .Where(g => g.Count() > 1)
                 .Select(g => g.Key)
@@ -101,19 +102,19 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     ? Mensajes.ASIGNAR_VARIOS.Replace("@articulo", "el").Replace("@entidad", $"Colaborador ID {colaboradoresDuplicados.First()}")
                     : Mensajes.CAMPOS_DUPLICADOS.Replace("@Campos", $"Colaboradores ID {string.Join(", ", colaboradoresDuplicados)}");
 
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
+                return new Response<ViajesEncabezado> { Exitoso = false, Mensaje = mensaje };
             }
 
-            return new Response<int> { Exitoso = true };
+            return new Response<ViajesEncabezado> { Exitoso = true };
         }
 
 
 
-        public Response<int> ValidarDistancia(decimal distanciaCantidad, decimal distanciaTotalKm)
+        public Response<ViajesEncabezado> ValidarDistancia(decimal distanciaCantidad, decimal distanciaTotalKm)
         {
             if (distanciaCantidad < 0)
             {
-                return new Response<int>
+                return new Response<ViajesEncabezado>
                 {
                     Exitoso = false,
                     Mensaje = Mensajes.ERROR_DISTANCIA
@@ -122,14 +123,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
             if (distanciaTotalKm + distanciaCantidad > 100)
             {
-                return new Response<int>
+                return new Response<ViajesEncabezado>
                 {
                     Exitoso = false,
                     Mensaje = Mensajes.DISTANCIA_EXCEDIDA.Replace("@distanciakm", (distanciaTotalKm + distanciaCantidad).ToString())
                 };
             }
 
-            return new Response<int> { Exitoso = true };
+            return new Response<ViajesEncabezado> { Exitoso = true };
         }
 
         public async Task<Response<int>> ValidarRegistrarDatosSolicitud(SolicitudDto solicitudDto)
@@ -151,96 +152,27 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
             return new Response<int> { Exitoso = true };
         }
-
-
-        public Response<int> ValidarDatosSolicitud(SolicitudDto solicitudDto)
-        {
-            var camposFaltantes = new List<string>();
-
-            if (string.IsNullOrEmpty(solicitudDto.Descripcion))
-                camposFaltantes.Add("Descripción");
-
-            if (solicitudDto.UsuarioId <= 0)
-                camposFaltantes.Add("Usuario");
-
-            if (solicitudDto.FechaViaje == default)
-                camposFaltantes.Add("Fecha de Viaje");
-
-            if (camposFaltantes.Any())
-            {
-                string mensaje = camposFaltantes.Count == 1
-                    ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First()) 
-                    : Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", string.Join(", ", camposFaltantes));
-
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
-            }
-
-            return new Response<int> { Exitoso = true };
-        }
-
-
-        public async Task<Response<int>> ValidarDistanciaEnViaje(ViajesEncabezado viaje, Sucursales sucursal, List<ColaboradorUbicacionDto> viajeDetalles, int usuarioId)
-        {
-            if (viaje == null)
-                return new Response<int> { Exitoso = false, Mensaje = "El viaje no existe." };
-
-            if (sucursal == null)
-                return new Response<int> { Exitoso = false, Mensaje = "La sucursal del viaje no existe." };
-
-            var colaboradores = viajeDetalles
-                .Select(d => (d.Latitud, d.Longitud))
-                .ToList();
-
-            decimal nuevaDistancia = await _ubicacionService.CalcularDistanciaViaje(
-                sucursal.Latitud,
-                sucursal.Longitud,
-                colaboradores.Select(c => (c.Latitud, c.Longitud)).ToList()
-            );
-
-            return nuevaDistancia > 100
-                ? new Response<int> { Exitoso = false, Mensaje = "El viaje supera la distancia máxima permitida." }
-                : new Response<int> { Exitoso = true };
-        }
-
-        public async Task<Response<int>> ValidarDatosCancelarSolicitud(CancelarSolicitudViajeDto solicitudDto)
-        {
-            var camposFaltantes = new List<string>();
-
-            if (string.IsNullOrEmpty(solicitudDto.Descripcion))
-                camposFaltantes.Add("Descripción");
-
-            if (solicitudDto.UsuarioId <= 0)
-                camposFaltantes.Add("Usuario");
-
-            if (solicitudDto.ViajeEncabezadoId == null)
-                camposFaltantes.Add("Viaje");
-
-            if (camposFaltantes.Any())
-            {
-                string mensaje = camposFaltantes.Count == 1
-                    ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First()) 
-                    : Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", string.Join(", ", camposFaltantes)); 
-
-                return new Response<int> { Exitoso = false, Mensaje = mensaje };
-            }
-
-            return new Response<int> { Exitoso = true };
-        }
-        
         public async Task<Response<List<SucursalesDto>>> ValidarUbicacion(decimal latitud, decimal longitud)
         {
-            if (latitud == 0 && longitud == 0)
-                return new Response<List<SucursalesDto>> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDOS };
-
-            if (latitud < -90 || latitud > 90)
-                return new Response<List<SucursalesDto>> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "latitud") };
-
-            if (longitud < -180 || longitud > 180)
-                return new Response<List<SucursalesDto>> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "longitud") };
+            var validacionUbicacion = ValidarUbicacionInterna(latitud, longitud);
+            if (!validacionUbicacion.Exitoso)
+                return new Response<List<SucursalesDto>> { Exitoso = false, Mensaje = validacionUbicacion.Mensaje };
 
             return new Response<List<SucursalesDto>> { Exitoso = true };
         }
 
+        private Response<object> ValidarUbicacionInterna(decimal latitud, decimal longitud)
+        {
+            if (latitud == 0 && longitud == 0)
+                return new Response<object> { Exitoso = false, Mensaje = Mensajes.INGRESAR_UBICACION_VALIDA };
 
+            if (latitud < -90 || latitud > 90)
+                return new Response<object> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "latitud") };
+
+            if (longitud < -180 || longitud > 180)
+                return new Response<object> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "longitud") };
+
+            return new Response<object> { Exitoso = true };
+        }
     }
 }

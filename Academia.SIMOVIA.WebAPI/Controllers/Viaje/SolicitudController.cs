@@ -47,12 +47,12 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
-        [HttpPost("RegistrarViajePorSolicitud")]
-        public async Task<IActionResult> RegistrarViajePorSolicitud([FromBody] RegistrarViajePorSolicitudDto dto)
-        {
-            var resultado = await _viajeService.RegistrarViajePorSolicitud(dto.Viaje, dto.SolicitudId);
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        }
+        //[HttpPost("RegistrarViajePorSolicitud")]
+        //public async Task<IActionResult> RegistrarViajePorSolicitud([FromBody] RegistrarViajePorSolicitudDto dto)
+        //{
+        //    var resultado = await _viajeService.RegistrarViajePorSolicitud(dto.Viaje, dto.SolicitudId);
+        //    return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        //}
 
         [HttpPut("RechazarSolicitud/{solicitudId}")]
         public async Task<IActionResult> RechazarSolicitud([FromRoute] int solicitudId)
