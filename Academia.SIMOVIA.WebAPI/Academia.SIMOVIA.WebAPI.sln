@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Academia.SIMOVIA.WebAPI", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Academia.SIMOVIA.UnitTests", "..\Academia.SIMOVIA.UnitTests\Academia.SIMOVIA.UnitTests.csproj", "{A7F55F4E-BBD9-4B72-95B0-420F3FA61169}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Academia.SIMOVIA.IntegrationTests", "..\Academia.SIMOVIA.IntegrationTests\Academia.SIMOVIA.IntegrationTests.csproj", "{A21A2F21-3859-4705-9F5C-5CC10A3EB8A3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{A7F55F4E-BBD9-4B72-95B0-420F3FA61169}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7F55F4E-BBD9-4B72-95B0-420F3FA61169}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7F55F4E-BBD9-4B72-95B0-420F3FA61169}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A21A2F21-3859-4705-9F5C-5CC10A3EB8A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A21A2F21-3859-4705-9F5C-5CC10A3EB8A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A21A2F21-3859-4705-9F5C-5CC10A3EB8A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A21A2F21-3859-4705-9F5C-5CC10A3EB8A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

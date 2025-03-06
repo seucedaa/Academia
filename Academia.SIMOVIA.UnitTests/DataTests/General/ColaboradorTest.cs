@@ -18,22 +18,29 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.General
             _colaboradorBase = ColaboradorBase();
             _requirementBase = DomainRequirementBase();
 
-            Add(ColaboradorConDatosIncompletos(), RequirementValido(), false, Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", "DNI, Nombres, Apellidos, Correo Electrónico, Teléfono, Sexo, Fecha de Nacimiento, Dirección Exacta, Latitud, Longitud, Estado Civil, Cargo, Ciudad, Usuario Creación, Sucursales"));
+            Add(ColaboradorConDatosIncompletos(), RequirementValido(), false, Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", "DNI, Nombres, Apellidos, Correo Electrónico, Teléfono, Sexo, Fecha de Nacimiento, Dirección Exacta, Latitud, Longitud, Estado Civil, Cargo, Ciudad, Usuario Creación, Asignar sucursales"));
+            Add(ColaboradorConDatoIncompleto(), RequirementValido(), false, Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", "DNI"));
             Add(ColaboradorConDniExcedido(), RequirementValido(), false, Mensajes.LONGITUD_INVALIDA.Replace("@campo", "DNI"));
             Add(ColaboradorConNombresExcedidos(), RequirementValido(), false, Mensajes.LONGITUD_INVALIDA.Replace("@campo", "Nombres"));
             Add(ColaboradorConApellidosExcedidos(), RequirementValido(), false, Mensajes.LONGITUD_INVALIDA.Replace("@campo", "Apellidos"));
             Add(ColaboradorConCorreoExcedido(), RequirementValido(), false, Mensajes.LONGITUD_INVALIDA.Replace("@campo", "Correo Electrónico"));
             Add(ColaboradorConTelefonoExcedido(), RequirementValido(), false, Mensajes.LONGITUD_INVALIDA.Replace("@campo", "Teléfono"));
             Add(ColaboradorConDireccionExcedida(), RequirementValido(), false, Mensajes.LONGITUD_INVALIDA.Replace("@campo", "Dirección Exacta"));
+            Add(ColaboradorConMultiplesCamposExcedidos(), RequirementValido(), false, Mensajes.LONGITUDES_INVALIDAS.Replace("@campos", "DNI, Correo Electrónico"));
+
             Add(ColaboradorConFechaNacimientoInvalida(), RequirementValido(), false, Mensajes.INGRESAR_VALIDO.Replace("@campo", "Fecha de Nacimiento"));
             Add(ColaboradorConSexoInvalido(), RequirementValido(), false, Mensajes.INGRESAR_VALIDO.Replace("@campo", "sexo"));
             Add(ColaboradorConDistanciaInvalida(), RequirementValido(), false, Mensajes.DISTANCIA_INVALIDA.Replace("@distanciakm", "0, 55"));
             Add(ColaboradorConDniDuplicado(), RequirementDniDuplicado(), false, Mensajes.CAMPO_EXISTENTE.Replace("@Campo", "DNI"));
+            Add(ColaboradorConCorreoDuplicado(), RequirementCorreoDuplicado(), false, Mensajes.CAMPO_EXISTENTE.Replace("@Campo", "Correo Electrónico"));
             Add(ColaboradorConEstadoCivilNoExiste(), RequirementEstadoCivilNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Estado Civil"));
             Add(ColaboradorConCargoNoExiste(), RequirementCargoNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Cargo"));
             Add(ColaboradorConCiudadNoExiste(), RequirementCiudadNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Ciudad"));
             Add(ColaboradorConUsuarioNoExiste(), RequirementUsuarioNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Usuario"));
             Add(ColaboradorConSucursalNoExiste(), RequirementSucursalNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal ID 99"));
+            Add(ColaboradorConSucursalesNoExisten(), RequirementSucursalesNoExisten(), false, Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", "Sucursales ID 99, 100"));
+            Add(ColaboradorConSucursalesDuplicadas(), RequirementValido(), false, Mensajes.ASIGNAR_VARIOS.Replace("@articulo", "la").Replace("@entidad", "sucursal"));
+            Add(ColaboradorSinSucursales(), RequirementValido(), false, Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", "Asignar sucursales"));
 
             Add(_colaboradorBase,_requirementBase, true, null);
         }
@@ -106,6 +113,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.General
             c.ColaboradoresPorSucursal = new List<ColaboradoresPorSucursal>();
         });
 
+        Colaboradores ColaboradorConDatoIncompleto() => ModificarColaborador(c => c.DNI = "");
         Colaboradores ColaboradorConDniExcedido() => ModificarColaborador(c => c.DNI = new string('1', 14));
 
         Colaboradores ColaboradorConNombresExcedidos()=> ModificarColaborador(c => c.Nombres = new string('A', 51));
@@ -117,6 +125,11 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.General
         Colaboradores ColaboradorConTelefonoExcedido() => ModificarColaborador(c => c.Telefono = new string('9', 9));
 
         Colaboradores ColaboradorConDireccionExcedida() => ModificarColaborador(c => c.DireccionExacta = new string('D', 101));
+        Colaboradores ColaboradorConMultiplesCamposExcedidos() => ModificarColaborador(c =>
+        {
+            c.DNI = new string('1', 14); 
+            c.CorreoElectronico = new string('C', 61); 
+        });
 
         Colaboradores ColaboradorConFechaNacimientoInvalida() => ModificarColaborador(c => c.FechaNacimiento = DateTime.Today.AddYears(-100));
 
@@ -132,6 +145,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.General
         });
 
         Colaboradores ColaboradorConDniDuplicado() => ModificarColaborador(c => c.DNI = "1804200502571");
+        Colaboradores ColaboradorConCorreoDuplicado() => ModificarColaborador(c => c.CorreoElectronico = "sua@gmail.com");
 
         Colaboradores ColaboradorConEstadoCivilNoExiste()=> ModificarColaborador(c => c.EstadoCivilId = 99);
 
@@ -147,6 +161,27 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.General
             {
                 new ColaboradoresPorSucursal { SucursalId = 99, DistanciaKm = 34.6m }
             };
+        });
+        Colaboradores ColaboradorConSucursalesNoExisten() => ModificarColaborador(c =>
+        {
+            c.ColaboradoresPorSucursal = new List<ColaboradoresPorSucursal>
+            {
+                new ColaboradoresPorSucursal { SucursalId = 99, DistanciaKm = 34.6m },
+                new ColaboradoresPorSucursal { SucursalId = 100, DistanciaKm = 38.6m }
+            };
+        });
+        Colaboradores ColaboradorConSucursalesDuplicadas() => ModificarColaborador(c =>
+        {
+            c.ColaboradoresPorSucursal = new List<ColaboradoresPorSucursal>
+            {
+                new ColaboradoresPorSucursal { SucursalId = 3, DistanciaKm = 34.6m },
+                new ColaboradoresPorSucursal { SucursalId = 3, DistanciaKm = 34.5m },
+            };
+        });
+
+        Colaboradores ColaboradorSinSucursales() => ModificarColaborador(c =>
+        {
+            c.ColaboradoresPorSucursal = null;
         });
         #endregion
 
@@ -183,6 +218,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.General
         }
 
         RegistroColaboradorDomainRequirement RequirementDniDuplicado() => ModificarRequirement(r => r.DniExiste = true);
+        RegistroColaboradorDomainRequirement RequirementCorreoDuplicado() => ModificarRequirement(r => r.CorreoExiste = true);
 
         RegistroColaboradorDomainRequirement RequirementEstadoCivilNoExiste() => ModificarRequirement(r => r.EstadoCivilExiste = false);
 
@@ -193,6 +229,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.General
         RegistroColaboradorDomainRequirement RequirementUsuarioNoExiste()=> ModificarRequirement(r => r.UsuarioExiste = false);
 
         RegistroColaboradorDomainRequirement RequirementSucursalNoExiste() => ModificarRequirement(r => r.SucursalesNoExistentes = new List<int> { 99 });
+        RegistroColaboradorDomainRequirement RequirementSucursalesNoExisten() => ModificarRequirement(r => r.SucursalesNoExistentes = new List<int> { 99, 100 });
         #endregion
     }
 }

@@ -38,7 +38,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<Colaboradores>
                 {
                     Exitoso = false,
-                    Mensaje = string.Join(". ", domainRequirement.ObtenerErrores())
+                    Mensaje = string.Join(" ", domainRequirement.ObtenerErrores())
                 };
             }
 
@@ -63,7 +63,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             if (colaboradorDto.CargoId <= 0) camposFaltantes.Add("Cargo");
             if (colaboradorDto.CiudadId <= 0) camposFaltantes.Add("Ciudad");
             if (colaboradorDto.UsuarioCreacionId <= 0) camposFaltantes.Add("Usuario Creación");
-            if (colaboradorDto.ColaboradoresPorSucursal == null || !colaboradorDto.ColaboradoresPorSucursal.Any()) camposFaltantes.Add("Sucursales");
+            if (colaboradorDto.ColaboradoresPorSucursal == null || !colaboradorDto.ColaboradoresPorSucursal.Any()) camposFaltantes.Add("Asignar sucursales");
 
             if (camposFaltantes.Any())
             {
@@ -89,8 +89,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 
             if (errores.Any())
             {
-                string mensaje = errores.Count == 1 ?
-                    Mensajes.LONGITUD_INVALIDA.Replace("@campo", errores.First()) :
+                string mensaje = errores.Count == 1 ? Mensajes.LONGITUD_INVALIDA.Replace("@campo", errores.First()) :
                     Mensajes.LONGITUDES_INVALIDAS.Replace("@campos", string.Join(", ", errores));
 
                 return new Response<Colaboradores> { Exitoso = false, Mensaje = mensaje };
@@ -128,7 +127,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             var sucursalesDuplicadas = colaboradorDto.ColaboradoresPorSucursal
                 .GroupBy(cs => cs.SucursalId)
                 .Where(g => g.Count() > 1)
-                .Select(g => g.Key)
                 .ToList();
 
             if (sucursalesDuplicadas.Any())

@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 {
-    public class UbicacionService
+    public class UbicacionService : IUbicacionService
     {
         private readonly string _urlDistanceMatrixApi;
         private readonly string _urlDirectionsApi;

@@ -361,7 +361,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
         {
             var colaboradorEntidad = _mapper.Map<Colaboradores>(colaboradorDto);
 
-            colaboradorEntidad.ColaboradoresPorSucursal = _mapper.Map<List<ColaboradoresPorSucursal>>(colaboradorDto.Sucursales)
+            var sucursalesAsignadas = colaboradorEntidad.ColaboradoresPorSucursal = _mapper.Map<List<ColaboradoresPorSucursal>>(colaboradorDto.Sucursales)
                  ?? new List<ColaboradoresPorSucursal>();
 
             var domainRequeriment = await CrearRegistroColaboradorDomainRequirement(colaboradorEntidad);
@@ -387,13 +387,13 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 
                 int colaboradorId = colaboradorEntidad.ColaboradorId;
 
-                colaboradorEntidad.ColaboradoresPorSucursal.ToList().ForEach(cs =>
+                sucursalesAsignadas.ToList().ForEach(cs =>
                 {
                     cs.ColaboradorId = colaboradorId;
                     cs.ColaboradorPorSucursalId = 0;
                 });
 
-                _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(colaboradorEntidad.ColaboradoresPorSucursal);
+                _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(sucursalesAsignadas);
                 if (!await _unitOfWork.SaveChangesAsync()) 
                 {
                     await _unitOfWork.RollBackAsync();
