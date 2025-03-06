@@ -5,6 +5,8 @@ using Academia.SIMOVIA.WebAPI._Features.Acceso;
 using Academia.SIMOVIA.WebAPI._Features.General;
 using Academia.SIMOVIA.WebAPI._Features.Viaje;
 using Academia.SIMOVIA.WebAPI.Infrastructure;
+using Farsiman.Domain.Core.Standard.Repositories;
+using Farsiman.Infraestructure.Core.Entity.Standard;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,8 +42,20 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<SIMOVIAContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionStringFromENV("SIMOVIA_GFS")
-            ));
+//builder.Services.AddDbContext<SIMOVIAContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionStringFromENV("SIMOVIA_GFS")
+//            ));
+
+var isTesting = builder.Environment.IsEnvironment("Testing");
+if(!isTesting)
+{
+    builder.Services.AddDbContext<SIMOVIAContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionStringFromENV("SIMOVIA_GFS")));
+
+    builder.Services.AddScoped<IUnitOfWork>(serviceProvider =>
+    {
+        var dbContext = serviceProvider.GetRequiredService<SIMOVIAContext>();
+        return new UnitOfWork(dbContext);
+    });
+}
 
 builder.Services.AddTransient<AccesoService>();
 builder.Services.AddTransient<AccesoDomainService>();
@@ -72,3 +86,4 @@ app.UseAuthentication();
 app.MapControllers();
 
 app.Run();
+public partial class Program { }

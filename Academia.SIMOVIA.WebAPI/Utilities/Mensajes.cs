@@ -12,6 +12,8 @@
         public const string ERROR_DISTANCIA = "Error al calcular la distancia del viaje.";
         public const string VIAJES_NO_DISPONIBLES = "No hay viajes disponibles en la fecha y hora solicitada.";
         public const string SIN_PERMISO = "No tiene permiso para registrar un viaje.";
+        public const string ERROR_BASE_DE_DATOS = "Error en la base de datos.";
+        public const string SERVIDOR_NO_RESPONDE = "El servidor tardó demasiado en responder.";
         #endregion
 
         #region Parametros
