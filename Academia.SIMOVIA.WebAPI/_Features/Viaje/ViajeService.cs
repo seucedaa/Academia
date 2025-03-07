@@ -29,14 +29,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
         private readonly UnitOfWorkBuilder _unitOfWorkBuilder;
         private readonly IMapper _mapper;
         private readonly ViajeDomainService _viajeDomainService;
-        private readonly Farsiman.Domain.Core.Standard.Repositories.IUnitOfWork _unitOfWork;
-        private readonly UbicacionService _ubicacionService;
-        public ViajeService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, ViajeDomainService viajeDomainService, UbicacionService ubicacionService)
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUbicacionService _ubicacionService;
+        public ViajeService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, ViajeDomainService viajeDomainService, IUnitOfWork unitOfWork,IUbicacionService ubicacionService)
         {
             _unitOfWorkBuilder = unitOfWorkBuilder;
             _mapper = mapper;
             _viajeDomainService = viajeDomainService;
-            _unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+            _unitOfWork = unitOfWork;
             _ubicacionService = ubicacionService;
         }
         #region Sucursales
@@ -420,6 +420,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             await _unitOfWork.BeginTransactionAsync();
             try
             {
+                //await Task.Delay(TimeSpan.FromSeconds(10));
                 var sucursal = await _unitOfWork.Repository<Sucursales>()
                     .AsQueryable()
                     .Where(s => s.SucursalId == viajeEntidad.SucursalId)
@@ -497,6 +498,20 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     Exitoso = true,
                     Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Viaje")
                 };
+            }
+            catch (DbUpdateException)
+            {
+                await _unitOfWork.RollBackAsync();
+                return new Response<ViajesEncabezado>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_BASE_DE_DATOS
+                };
+            }
+            catch (TimeoutException)
+            {
+                await _unitOfWork.RollBackAsync();
+                return new Response<ViajesEncabezado> { Exitoso = false, Mensaje = Mensajes.SERVIDOR_NO_RESPONDE };
             }
             catch (Exception)
             {

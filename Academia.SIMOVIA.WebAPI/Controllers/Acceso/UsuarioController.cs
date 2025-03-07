@@ -1,5 +1,6 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.Acceso;
 using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
+using Academia.SIMOVIA.WebAPI.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
@@ -24,7 +25,20 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
         public async Task<IActionResult> InicioSesion([FromBody] InicioSesionDto login)
         {
             var resultado = await _accesoService.InicioSesion(login);
-            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+            //return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+
+            if(resultado.Exitoso)
+                return Ok(resultado);
+
+            switch (resultado.Mensaje)
+            {
+                case Mensajes.ERROR_BASE_DE_DATOS:
+                    return StatusCode(StatusCodes.Status500InternalServerError, resultado);
+                case Mensajes.SERVIDOR_NO_RESPONDE:
+                    return StatusCode(StatusCodes.Status408RequestTimeout, resultado);
+                default:
+                    return BadRequest(resultado);
+            }
         }
 
     }

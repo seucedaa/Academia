@@ -59,7 +59,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Acceso
             Usuario = "sua",
             Clave = "sua2"
         };
-
+            
         public Usuarios UsuarioNoEncontrado() => new Usuarios
         {
             UsuarioId = 0

@@ -9,22 +9,25 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
     {
         private readonly string _urlDistanceMatrixApi;
         private readonly string _urlDirectionsApi;
+        private readonly string _apiKey;
+        private readonly IConfiguration _configuration;
 
-        public UbicacionService()
+        public UbicacionService(IConfiguration configuration)
         {
-            _urlDistanceMatrixApi = Environment.GetEnvironmentVariable("DISTANCE_MATRIX_API_URL");
-            _urlDirectionsApi = Environment.GetEnvironmentVariable("DIRECTIONS_API_URL");
+            _configuration = configuration;
+            _urlDistanceMatrixApi = _configuration["DISTANCE_MATRIX_API_URL"];
+            _urlDirectionsApi = _configuration["DIRECTIONS_API_URL"];
+            _apiKey = _configuration["API_KEY"];
         }
         public async Task<DistanceMatrixApiResponseDto> ObtenerDistanciasSucursales(decimal latitud, decimal longitud, List<Sucursales> sucursales)
         {
             try
             {
-                string apiKey = Environment.GetEnvironmentVariable("API_KEY");
                 string origins = $"{latitud.ToString(CultureInfo.InvariantCulture)},{longitud.ToString(CultureInfo.InvariantCulture)}";
                 string destinations = string.Join("|", sucursales.Select(s =>
                     $"{s.Latitud.ToString(CultureInfo.InvariantCulture)},{s.Longitud.ToString(CultureInfo.InvariantCulture)}"));
 
-                string url = string.Format(_urlDistanceMatrixApi, origins, destinations, apiKey);
+                string url = string.Format(_urlDistanceMatrixApi, origins, destinations, _apiKey);
 
                 using HttpClient client = new HttpClient();
                 string response = await client.GetStringAsync(url);
@@ -39,11 +42,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
         public async Task<decimal> CalcularDistanciaViaje(decimal latOrigen, decimal lonOrigen, List<(decimal Latitud, decimal Longitud)> colaboradores)
         {
-            string apiKey = Environment.GetEnvironmentVariable("API_KEY");
             string origin = $"{latOrigen.ToString(CultureInfo.InvariantCulture)},{lonOrigen.ToString(CultureInfo.InvariantCulture)}";
             string waypoints = string.Join("|", colaboradores.Select(c => $"{c.Latitud.ToString(CultureInfo.InvariantCulture)},{c.Longitud.ToString(CultureInfo.InvariantCulture)}"));
             string destination = $"{colaboradores.Last().Latitud.ToString(CultureInfo.InvariantCulture)},{colaboradores.Last().Longitud.ToString(CultureInfo.InvariantCulture)}";
-            string url = string.Format(_urlDirectionsApi, origin, destination, waypoints, apiKey);
+            string url = string.Format(_urlDirectionsApi, origin, destination, waypoints, _apiKey);
 
             using HttpClient client = new HttpClient();
             string response = await client.GetStringAsync(url);

@@ -66,6 +66,7 @@ builder.Services.AddTransient<ViajeDomainService>();
 builder.Services.AddTransient<UbicacionService>();
 
 builder.Services.AddScoped<UnitOfWorkBuilder>();
+builder.Services.AddScoped<IUbicacionService, UbicacionService>();
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
 

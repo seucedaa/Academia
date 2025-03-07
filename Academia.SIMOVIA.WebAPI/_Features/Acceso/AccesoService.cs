@@ -92,20 +92,35 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 
         public async Task<Response<SesionUsuarioDto>> InicioSesion(InicioSesionDto login)
         {
-            Usuarios? usuario = await _unitOfWork.Repository<Usuarios>().AsQueryable().FirstOrDefaultAsync(u => u.Usuario == login.Usuario);
-
-            Response<string> resultadoValidacion = _accesoDomainService.ValidarInicioSesion(login, usuario);
-            if (!resultadoValidacion.Exitoso)
-                return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = resultadoValidacion.Mensaje };
-
-            SesionUsuarioDto usuarioSesion = await ObtenerDatosSesionUsuario(login.Usuario);
-
-            return new Response<SesionUsuarioDto>
+            try
             {
-                Exitoso = true,
-                Mensaje = Mensajes.SESION_EXITOSA,
-                Data = usuarioSesion
-            };
+                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                Usuarios? usuario = await _unitOfWork.Repository<Usuarios>()
+                    .AsQueryable()
+                    .FirstOrDefaultAsync(u => u.Usuario == login.Usuario, cts.Token);
+                Response<string> resultadoValidacion = _accesoDomainService.ValidarInicioSesion(login, usuario);
+                if (!resultadoValidacion.Exitoso)
+                    return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = resultadoValidacion.Mensaje };
+                
+                SesionUsuarioDto usuarioSesion = await ObtenerDatosSesionUsuario(login.Usuario);
+
+                return new Response<SesionUsuarioDto>
+                {
+                    Exitoso = true,
+                    Mensaje = Mensajes.SESION_EXITOSA,
+                    Data = usuarioSesion
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = Mensajes.SERVIDOR_NO_RESPONDE };
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("base de datos"))
+                    return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = Mensajes.ERROR_BASE_DE_DATOS };
+                return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = Mensajes.ERROR_GENERAL };
+            }
         }
 
         private async Task<List<PantallaDto>> ObtenerPantallasPermitidas(Usuarios usuario)
