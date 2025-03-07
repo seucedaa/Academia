@@ -1,5 +1,8 @@
-﻿namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General
 {
+    [ExcludeFromCodeCoverage]
     public class MonedasPorPais
     {
         public int MonedaPorPaisId { get; set; }

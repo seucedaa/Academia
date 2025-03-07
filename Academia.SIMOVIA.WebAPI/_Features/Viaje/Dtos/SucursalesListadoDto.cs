@@ -1,5 +1,8 @@
-﻿namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
 {
+    [ExcludeFromCodeCoverage]
     public class SucursalesListadoDto
     {
         public int SucursalId { get; set; }

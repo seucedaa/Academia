@@ -14,6 +14,9 @@ using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
 using Academia.SIMOVIA.WebAPI.Utilities;
 using System.Security.Cryptography;
 using Academia.SIMOVIA.WebAPI.Helpers;
+using Academia.SIMOVIA.IntegrationTests.Data.General;
+using Academia.SIMOVIA.IntegrationTests.Data.Acceso;
+using Academia.SIMOVIA.IntegrationTests.Data.Viaje;
 
 namespace Academia.SIMOVIA.IntegrationTests._Features.General
 {
@@ -32,7 +35,7 @@ namespace Academia.SIMOVIA.IntegrationTests._Features.General
         [Fact]
         public async Task Dado_UnColaboradorValido_CuandoSeRegistra_Entonces_RetornaOkYDetalle()
         {
-            await SeedDatabaseAsync();
+            await PoblarBaseDeDatosAsync();
 
             var colaboradorDto = new ColaboradorDto
             {
@@ -65,7 +68,7 @@ namespace Academia.SIMOVIA.IntegrationTests._Features.General
             resultado.Mensaje.Should().Be(Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Colaborador"));
         }
 
-        private async Task SeedDatabaseAsync()
+        private async Task PoblarBaseDeDatosAsync()
         {
             using var scope = _customWebApplicationFactory.Services.CreateScope();
             var scopedServices = scope.ServiceProvider;
@@ -74,40 +77,25 @@ namespace Academia.SIMOVIA.IntegrationTests._Features.General
             db.Database.EnsureCreated();
 
             if (!db.Roles.Any())
-                db.Roles.Add(new Roles { RolId = 1, Descripcion = "Admin", UsuarioCreacionId = 1, FechaCreacion = DateTime.Now });
+                db.Roles.Add(RolesData.RolPrueba);
 
             if (!db.Cargos.Any())
-                db.Cargos.Add(new Cargos { CargoId = 1, Descripcion = "Gerente", UsuarioCreacionId = 1, FechaCreacion = DateTime.Now });
+                db.Cargos.Add(CargosData.CargoPrueba);
 
             if (!db.EstadosCiviles.Any())
-                db.EstadosCiviles.Add(new EstadosCiviles { EstadoCivilId = 1, Descripcion = "Soltero", UsuarioCreacionId = 1, FechaCreacion = DateTime.Now });
+                db.EstadosCiviles.Add(EstadosCivilesData.EstadoPrueba);
 
             if (!db.Ciudades.Any())
-                db.Ciudades.Add(new Ciudades { CiudadId = 1, Descripcion = "Ciudad Central", UsuarioCreacionId = 1, FechaCreacion = DateTime.Now });
+                db.Ciudades.Add(CiudadesData.CiudadPrueba);
 
             if (!db.Sucursales.Any())
-                db.Sucursales.Add(new Sucursales { SucursalId = 1, Descripcion = "Sucursal 1", UsuarioCreacionId = 1, FechaCreacion = DateTime.Now });
+                db.Sucursales.Add(SucursalesData.SucursalPrueba);
 
             if (!db.Usuarios.Any())
-            {
-                byte[] claveCifrada;
-                using (var sha512 = SHA512.Create())
-                    claveCifrada = sha512.ComputeHash(Encoding.UTF8.GetBytes("admin123"));
-
-                db.Usuarios.Add(new Usuarios
-                {
-                    UsuarioId = 1,
-                    Usuario = "admin",
-                    Clave = claveCifrada,
-                    EsAdministrador = true,
-                    ColaboradorId = 1,
-                    RolId = 1,
-                    UsuarioCreacionId = 1,
-                    FechaCreacion = DateTime.Now,
-                });
-            }
+                db.Usuarios.Add(UsuariosData.UsuarioPrueba);
 
             await db.SaveChangesAsync();
         }
+
     }
 }

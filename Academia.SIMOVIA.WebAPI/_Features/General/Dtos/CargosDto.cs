@@ -1,5 +1,8 @@
-﻿namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
 {
+    [ExcludeFromCodeCoverage]
     public class CargosDto
     {
         public int CargoId { get; set; }

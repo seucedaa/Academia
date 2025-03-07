@@ -31,8 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\Acceso\" />
-    <Folder Include="Mocks\Viaje\" />
     <Folder Include="_Features\General\DataTest\" />
   </ItemGroup>
 

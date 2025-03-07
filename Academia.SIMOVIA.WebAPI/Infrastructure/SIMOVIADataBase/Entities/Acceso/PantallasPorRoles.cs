@@ -1,5 +1,8 @@
-﻿namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
 {
+    [ExcludeFromCodeCoverage]
     public class PantallasPorRoles
     {
         public int PantallaPorRolId { get; set; }

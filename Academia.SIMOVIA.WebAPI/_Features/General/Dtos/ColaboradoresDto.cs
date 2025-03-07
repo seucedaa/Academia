@@ -1,5 +1,8 @@
-﻿namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
 {
+    [ExcludeFromCodeCoverage]
     public class ColaboradoresDto
     {
         public int ColaboradorId { get; set; }

@@ -22,8 +22,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
             if (string.IsNullOrEmpty(login.Usuario) || string.IsNullOrEmpty(login.Clave))
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.CREDENCIALES_OBLIGATORIAS };
 
-            if (usuario == null) 
-                return new Response<string> { Exitoso = false, Mensaje = Mensajes.CREDENCIALES_INCORRECTAS };
             if (usuario.UsuarioId == 0) 
                 return new Response<string> { Exitoso = false, Mensaje = Mensajes.CREDENCIALES_INCORRECTAS };
 

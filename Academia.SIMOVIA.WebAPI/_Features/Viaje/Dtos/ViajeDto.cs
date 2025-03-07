@@ -1,7 +1,9 @@
 ﻿using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
 {
+    [ExcludeFromCodeCoverage]
     public class ViajeDto
     {
         public DateTime FechaHora { get; set; }

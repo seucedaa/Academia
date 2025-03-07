@@ -1,4 +1,6 @@
-﻿namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Enums
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Enums
 {
     public enum EstadosSolicitud
     {

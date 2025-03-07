@@ -1,8 +1,10 @@
 ﻿using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
 {
+    [ExcludeFromCodeCoverage]
     public class Sucursales
     {
         public Sucursales()

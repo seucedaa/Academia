@@ -16,6 +16,9 @@ using Academia.SIMOVIA.WebAPI.Helpers;
 using System.Security.Cryptography;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
 using FluentAssertions;
+using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
+using Academia.SIMOVIA.IntegrationTests.Data.Acceso;
+using Academia.SIMOVIA.IntegrationTests.Data.General;
 
 namespace Academia.SIMOVIA.IntegrationTests._Features.Acceso
 {
@@ -36,78 +39,7 @@ namespace Academia.SIMOVIA.IntegrationTests._Features.Acceso
         [Fact]
         public async Task Dado_QueExisteElUsuario_CuandoSeInvocaElEndpointDeInicioSesion_Entonces_RetornaOkYLosDatosDeSesion()
         {
-            using (var scope = _customWebApplicationFactory.Services.CreateScope())
-            {
-                var scopedServices = scope.ServiceProvider;
-                var db = scopedServices.GetRequiredService<SIMOVIAContext>();
-
-                db.Database.EnsureCreated();
-                db.Roles.Add(new Roles
-                {
-                    RolId = 1,
-                    Descripcion = "prueba",
-                    UsuarioCreacionId = 1,
-                    FechaCreacion = DateTime.Now
-                });
-                byte[] claveCifrada;
-                using (SHA512 sha512 = SHA512.Create())
-                    claveCifrada = sha512.ComputeHash(Encoding.UTF8.GetBytes("sua"));
-                db.Cargos.Add(new Cargos
-                {
-                    CargoId = 1,
-                    Descripcion = "prueba",
-                    UsuarioCreacionId = 1,
-                    FechaCreacion = DateTime.Now
-                });
-                
-                db.Colaboradores.Add(new Colaboradores
-                {
-                    ColaboradorId = 1,
-                    DNI = "1234567890123",
-                    Nombres = "sua",
-                    Apellidos = "sua",
-                    CorreoElectronico = "sua@gmail.com",
-                    Telefono = "12345678",
-                    Sexo = "M",
-                    FechaNacimiento = DateTime.Now,
-                    DireccionExacta = "los angeles",
-                    Latitud = 15.25m,
-                    Longitud = -88.235m,
-                    EstadoCivilId = 1,
-                    CargoId = 1,
-                    CiudadId = 1,
-                    UsuarioCreacionId = 1,
-                    FechaCreacion = DateTime.Now,
-                });
-                db.Usuarios.Add(new Usuarios
-                {
-                    UsuarioId = 1,
-                    Usuario = "sua",
-                    Clave = claveCifrada,
-                    EsAdministrador = false,
-                    ColaboradorId = 1,
-                    RolId = 1,
-                    UsuarioCreacionId = 1,
-                    FechaCreacion = DateTime.Now,
-                });
-                db.Pantallas.Add(new Pantallas
-                {
-                    PantallaId = 1,
-                    Descripcion = "Dashboard",
-                    DireccionURL = "url",
-                    UsuarioCreacionId = 1,
-                    FechaCreacion = DateTime.Now
-                });
-
-                db.PantallasPorRoles.Add(new PantallasPorRoles
-                {
-                    RolId = 1,
-                    PantallaId = 1
-                });
-
-                db.SaveChanges();
-
-            }
+            await PoblarBaseDeDatosAsync();
 
             var loginDto = new InicioSesionDto
             {
@@ -129,6 +61,36 @@ namespace Academia.SIMOVIA.IntegrationTests._Features.Acceso
                 Mensaje = Mensajes.SESION_EXITOSA
             });
 
+        }
+
+        private async Task PoblarBaseDeDatosAsync()
+        {
+            using var scope = _customWebApplicationFactory.Services.CreateScope();
+            var scopedServices = scope.ServiceProvider;
+            var db = scopedServices.GetRequiredService<SIMOVIAContext>();
+
+            db.Database.EnsureCreated();
+
+            if (!db.Roles.Any())
+                db.Roles.Add(RolesData.RolPrueba);
+
+            if (!db.Cargos.Any())
+                db.Cargos.Add(CargosData.CargoPrueba);
+
+            if (!db.Colaboradores.Any())
+                db.Colaboradores.Add(ColaboradoresData.ColaboradorPrueba);
+
+            if (!db.Usuarios.Any())
+                db.Usuarios.Add(UsuariosData.UsuarioPrueba);
+
+            if (!db.Pantallas.Any())
+                db.Pantallas.Add(PantallasData.PantallaDashboard);
+
+            if (!db.PantallasPorRoles.Any())
+                db.PantallasPorRoles.Add(PantallasPorRolesData.PantallaAsignada);
+
+
+            await db.SaveChangesAsync();
         }
 
     }

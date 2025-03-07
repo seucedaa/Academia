@@ -66,7 +66,7 @@ namespace Academia.SIMOVIA.IntegrationTests
                         MockUnitOfWork.Setup(u => u.BeginTransactionAsync(It.IsAny<IsolationLevel>())).Returns(() => realUnitOfWork.BeginTransactionAsync());
                         MockUnitOfWork.Setup(u => u.CommitAsync()).Returns(() => realUnitOfWork.CommitAsync());
                         MockUnitOfWork.Setup(u => u.RollBackAsync()).Returns(() => realUnitOfWork.RollBackAsync());
-                        
+
                         MockUnitOfWork.Setup(u => u.Repository<Roles>()).Returns(realUnitOfWork.Repository<Roles>());
                         MockUnitOfWork.Setup(u => u.Repository<Usuarios>()).Returns(realUnitOfWork.Repository<Usuarios>());
                         MockUnitOfWork.Setup(u => u.Repository<Cargos>()).Returns(realUnitOfWork.Repository<Cargos>());
@@ -79,10 +79,9 @@ namespace Academia.SIMOVIA.IntegrationTests
                         MockUnitOfWork.Setup(u => u.Repository<ViajesEncabezado>()).Returns(realUnitOfWork.Repository<ViajesEncabezado>());
                         MockUnitOfWork.Setup(u => u.Repository<ViajesDetalle>()).Returns(realUnitOfWork.Repository<ViajesDetalle>());
 
-                        Console.WriteLine("Usando MockUnitOfWork con repositorios reales y SaveChangesAsync simulado.");
                         return MockUnitOfWork.Object;
                     }
-                        return realUnitOfWork;
+                    return realUnitOfWork;
                 });
 
                 if (_mockUbicacionService != null)

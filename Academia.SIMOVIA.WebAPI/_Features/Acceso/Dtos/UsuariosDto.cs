@@ -1,5 +1,8 @@
-﻿namespace Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos
 {
+    [ExcludeFromCodeCoverage]
     public class UsuariosDto
     {
         public int UsuarioId { get; set; }

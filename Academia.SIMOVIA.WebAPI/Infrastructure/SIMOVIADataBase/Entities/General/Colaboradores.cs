@@ -1,8 +1,10 @@
 ﻿using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General
 {
+    [ExcludeFromCodeCoverage]
     public class Colaboradores
     {
         public Colaboradores()

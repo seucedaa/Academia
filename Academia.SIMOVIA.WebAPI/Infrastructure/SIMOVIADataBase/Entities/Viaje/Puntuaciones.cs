@@ -1,7 +1,9 @@
 ﻿using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
 {
+    [ExcludeFromCodeCoverage]
     public class Puntuaciones
     {
         public Puntuaciones()
