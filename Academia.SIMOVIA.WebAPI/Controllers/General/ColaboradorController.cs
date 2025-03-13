@@ -40,6 +40,14 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
+        [HttpGet("ObtenerColaboradoresPorSucursales/{sucursalesIds}")]
+        public async Task<IActionResult> ObtenerColaboradoresPorSucursales([FromRoute] string sucursalesIds)
+        {
+            var ids = sucursalesIds.Split(',').Select(int.Parse).ToList();
+            var resultado = await _generalService.ObtenerColaboradoresPorSucursales(ids);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
+
         [HttpPost("RegistrarColaborador")]
         public async Task<IActionResult> RegistrarColaborador([FromBody] ColaboradorDto colaboradorDto)
         {

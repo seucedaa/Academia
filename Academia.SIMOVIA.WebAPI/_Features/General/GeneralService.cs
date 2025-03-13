@@ -336,6 +336,54 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 };
             }
         }
+
+        public async Task<Response<List<ColaboradoresDto>>> ObtenerColaboradoresPorSucursales(List<int> sucursalesIds)
+        {
+            try
+            {
+                var listado = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
+                    .Where(c => c.Estado && c.ColaboradoresPorSucursal.Any(cs => sucursalesIds.Contains(cs.SucursalId)))
+                    .Include(c => c.EstadoCivil)
+                    .Include(c => c.Cargo)
+                    .Include(c => c.Ciudad)
+                    .ToListAsync();
+
+
+                if (!listado.Any())
+                {
+                    return new Response<List<ColaboradoresDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "colaboradores")
+                    };
+                }
+
+                var colaboradoresDto = _mapper.Map<List<ColaboradoresDto>>(listado);
+
+                return new Response<List<ColaboradoresDto>>
+                {
+                    Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Colaboradores"),
+                    Data = colaboradoresDto
+                };
+            }
+            catch (DbUpdateException)
+            {
+                return new Response<List<ColaboradoresDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_LISTA.Replace("@entidad", "colaboradores")
+                };
+            }
+            catch (Exception)
+            {
+                return new Response<List<ColaboradoresDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_GENERAL
+                };
+            }
+        }
         private async Task<RegistroColaboradorDomainRequirement> CrearRegistroColaboradorDomainRequirement(Colaboradores colaborador)
         {
             bool dniExiste = await DatabaseHelper.ExisteRegistroEnBD<Colaboradores>(_unitOfWorkBuilder, c => c.DNI == colaborador.DNI);

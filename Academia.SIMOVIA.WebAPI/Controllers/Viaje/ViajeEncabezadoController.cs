@@ -36,6 +36,14 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
+        [HttpGet("ObtenerViajesPorSucursales/{sucursalesIds}")]
+        public async Task<IActionResult> ObtenerViajesPorSucursales([FromRoute] string sucursalesIds)
+        {
+            var ids = sucursalesIds.Split(',').Select(int.Parse).ToList();
+            var resultado = await _viajeService.ObtenerViajesPorSucursales(ids);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
+        }
+
         [HttpGet("ObtenerViajesDisponibles/{sucursalId?}/{fecha?}")]
         public async Task<IActionResult> ObtenerViajesDisponibles([FromRoute] int? sucursalId,[FromRoute] DateTime? fecha)
         {

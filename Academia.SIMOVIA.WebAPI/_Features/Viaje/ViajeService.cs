@@ -610,6 +610,51 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             };
         }
 
+        public async Task<Response<List<ViajesDto>>> ObtenerViajesPorSucursales(List<int> sucursalesIds)
+        {
+            try
+            {
+                var listado = await _unitOfWork.Repository<ViajesEncabezado>().AsQueryable()
+                 .Where(c => c.Estado && sucursalesIds.Contains(c.SucursalId))
+                 .Include(v => v.Sucursal)
+                 .Include(v => v.Transportista)
+                 .ToListAsync();
+
+                if (!listado.Any())
+                {
+                    return new Response<List<ViajesDto>>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "viajes")
+                    };
+                }
+
+                var viajesDto = _mapper.Map<List<ViajesDto>>(listado);
+
+                return new Response<List<ViajesDto>>
+                {
+                    Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Viajes"),
+                    Data = viajesDto
+                };
+            }
+            catch (DbUpdateException)
+            {
+                return new Response<List<ViajesDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_LISTA.Replace("@entidad", "viajes")
+                };
+            }
+            catch (Exception)
+            {
+                return new Response<List<ViajesDto>>
+                {
+                    Exitoso = false,
+                    Mensaje = Mensajes.ERROR_GENERAL
+                };
+            }
+        }
 
         public async Task<Response<List<ViajesDto>>> ObtenerViajesDisponibles(int? sucursalId, DateTime? fecha)
         {
