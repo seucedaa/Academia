@@ -25,7 +25,6 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
         public async Task<IActionResult> InicioSesion([FromBody] InicioSesionDto login)
         {
             var resultado = await _accesoService.InicioSesion(login);
-            //return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
 
             if(resultado.Exitoso)
                 return Ok(resultado);
@@ -34,8 +33,6 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
             {
                 case Mensajes.ERROR_BASE_DE_DATOS:
                     return StatusCode(StatusCodes.Status500InternalServerError, resultado);
-                case Mensajes.SERVIDOR_NO_RESPONDE:
-                    return StatusCode(StatusCodes.Status408RequestTimeout, resultado);
                 default:
                     return BadRequest(resultado);
             }

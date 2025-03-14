@@ -112,10 +112,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
                     Data = usuarioSesion
                 };
             }
-            catch (OperationCanceledException)
-            {
-                return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = Mensajes.SERVIDOR_NO_RESPONDE };
-            }
             catch (Exception ex)
             {
                 if (ex.Message.Contains("base de datos"))

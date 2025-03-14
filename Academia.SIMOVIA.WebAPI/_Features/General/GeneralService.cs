@@ -278,7 +278,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     return new Response<List<ColaboradoresPorSucursalDto>>{ Exitoso = false, Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal")};
 
                 var colaboradoresEnSucursal = await _unitOfWork.Repository<ColaboradoresPorSucursal>().AsQueryable()
-                    .Where(cs => cs.SucursalId == sucursalId)
+                    .Where(cs => cs.SucursalId == sucursalId && cs.Estado)
                     .Select(cs => new
                     { cs.ColaboradorId, cs.DistanciaKm }).ToListAsync();
 
@@ -310,7 +310,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     .Where(c => colaboradoresEnSucursalIds.Contains(c.ColaboradorId) && !colaboradoresEnViaje.Contains(c.ColaboradorId))
                     .ToListAsync();
 
-                var distanciasDict = colaboradoresEnSucursal.ToDictionary(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
+                    var distanciasDict = colaboradoresEnSucursal.ToDictionary(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
 
                 var colaboradoresDto = _mapper.Map<List<ColaboradoresPorSucursalDto>>(colaboradoresDisponibles, opt => opt.Items["Distancias"] = distanciasDict);
                 if (!colaboradoresDto.Any())
@@ -440,6 +440,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 {
                     cs.ColaboradorId = colaboradorId;
                     cs.ColaboradorPorSucursalId = 0;
+                    cs.Estado = true;
                 });
 
                 _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(sucursalesAsignadas);

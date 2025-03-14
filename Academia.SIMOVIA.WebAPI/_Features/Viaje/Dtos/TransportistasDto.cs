@@ -12,5 +12,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
         public string Telefono { get; set; }
         public decimal Tarifa { get; set; }
         public string CiudadDescripcion { get; set; }
+        public string MonedaSimbolo { get; set; }
     }
 }
