@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simoviaapi-sare
+  namespace: academia
+spec:
+  containers:
+  - name: webapi
+    image: harbor-01.docker-registry.grupofarsiman.io/academia/simoviaapi-sare:v1
+    ports:
+    - containerPort: 8080
+    env:
+    - name: FS_SQL_SIMOVIA_SERVER
+      value: 192.168.1.33\\academiagfs,49194
+    - name: FS_SQL_SIMOVIA_DBNAME
+      value: SIMOVIA
+    - name: FS_SQL_SIMOVIA_USER
+      value: AcademiaDEV
+    - name: FS_SQL_SIMOVIA_PASSWORD
+      value: Academia.1

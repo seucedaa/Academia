@@ -282,7 +282,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     .Select(cs => new
                     { cs.ColaboradorId, cs.DistanciaKm }).ToListAsync();
 
-                if (!colaboradoresEnSucursal.Any() || sucursalId == null)
+                if (!colaboradoresEnSucursal.Any() || sucursalId == 0)
                 {
                     return new Response<List<ColaboradoresPorSucursalDto>>
                     {
@@ -324,6 +324,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<List<ColaboradoresPorSucursalDto>>
                 {
                     Exitoso = true,
+                    Mensaje = Mensajes.LISTADO_EXITOSO.Replace("@Entidad", "Colaboradores"),
                     Data = colaboradoresDto
                 };
             }

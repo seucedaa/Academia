@@ -280,7 +280,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
                 return new Response<Sucursales> { Exitoso = true, Mensaje = Mensajes.CREADO_EXITOSAMENTE.Replace("@Entidad", "Sucursal") };
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new Response<Sucursales>
                 {
