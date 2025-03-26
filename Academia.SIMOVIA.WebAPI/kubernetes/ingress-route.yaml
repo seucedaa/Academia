@@ -1,0 +1,19 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: simoviaapi-sare-ingress
+  namespace: academia
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`apps.academia-dev.grupofarsiman.io`) &&
+        PathPrefix(`/staging/academia/api-sare`)
+    middlewares:
+      - name: simoviaapi-sare-middleware
+    services:
+    - name: simoviaapi-sare-service
+      port: 80
+  tls:
+    secretName: tls-dev-academia.grupofarsiman.io

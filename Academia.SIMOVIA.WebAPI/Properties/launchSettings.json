@@ -21,14 +21,14 @@
         "DISTANCE_MATRIX_API_URL": "https://maps.googleapis.com/maps/api/distancematrix/json?origins={0}&destinations={1}&key={2}&units=metric",
         "DIRECTIONS_API_URL": "https://maps.googleapis.com/maps/api/directions/json?origin={0}&destination={1}&waypoints=optimize:true|{2}&key={3}&units=metric",
         "CODIGO_PAIS": "HN",
-        //"FS_SQL_SIMOVIA_SERVER": "192.168.1.33\\academiagfs,49194",
-        //"FS_SQL_SIMOVIA_DBNAME": "SIMOVIA",
-        //"FS_SQL_SIMOVIA_USER": "AcademiaDEV",
-        //"FS_SQL_SIMOVIA_PASSWORD": "Academia.1"
-        "FS_SQL_SIMOVIA_SERVER": "localhost,1433",
+        "FS_SQL_SIMOVIA_SERVER": "192.168.1.33\\academiagfs,49194",
         "FS_SQL_SIMOVIA_DBNAME": "SIMOVIA",
-        "FS_SQL_SIMOVIA_USER": "sa",
-        "FS_SQL_SIMOVIA_PASSWORD": "YourStrong!Passw0rd"
+        "FS_SQL_SIMOVIA_USER": "AcademiaDEV",
+        "FS_SQL_SIMOVIA_PASSWORD": "Academia.1"
+        //"FS_SQL_SIMOVIA_SERVER": "localhost,1433",
+        //"FS_SQL_SIMOVIA_DBNAME": "SIMOVIA",
+        //"FS_SQL_SIMOVIA_USER": "sa",
+        //"FS_SQL_SIMOVIA_PASSWORD": "YourStrong!Passw0rd"
       }
     },
     "IIS Express": {

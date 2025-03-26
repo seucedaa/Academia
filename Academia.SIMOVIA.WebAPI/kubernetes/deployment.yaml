@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simoviaapi-sare-deployment
+  namespace: academia
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: simoviaapi-sare
+  template:
+    metadata:
+      labels:
+        app: simoviaapi-sare
+    spec:
+      containers:
+      - image: harbor-01.docker-registry.grupofarsiman.io/academia/simoviaapi-sare:v1
+        name: webapi
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "256Mi"
+        ports:
+          - containerPort: 80
+        env:
+        - name: ASPNETCORE_URLS
+          value: http://*.80
+        - name: CODIGO_PAIS
+          value: HN
+        - name: FS_SQL_SIMOVIA_SERVER
+          valueFrom:
+            secretKeyRef:
+              name: academia-sql-connection
+              key: server
+        - name: FS_SQL_SIMOVIA_DBNAME
+          value: SIMOVIA
+        - name: FS_SQL_SIMOVIA_USER
+          valueFrom:
+            secretKeyRef:
+              name: academia-sql-connection
+              key: user
+        - name: FS_SQL_SIMOVIA_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: academia-sql-connection
+              key: password

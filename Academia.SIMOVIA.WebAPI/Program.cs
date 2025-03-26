@@ -80,9 +80,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowSpecificOrigin");
 
-app.UseAuthorization();
-
 app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

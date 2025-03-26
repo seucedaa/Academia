@@ -1,0 +1,10 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: simoviaapi-sare-middleware
+  namespace: academia
+spec:
+  stripPrefix:
+    forceSlash: false
+    prefixes:
+      - /staging/academia/api-sare
