@@ -38,7 +38,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements
                 return errores;
             }
 
-            public bool EsValido() => !ObtenerErrores().Any();
+            public bool EsValido() => ObtenerErrores().Count == 0;
         }
     }
 

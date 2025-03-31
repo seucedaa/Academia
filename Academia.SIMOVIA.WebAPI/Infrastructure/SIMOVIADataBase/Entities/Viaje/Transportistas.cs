@@ -14,6 +14,9 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
             Apellidos = string.Empty;
             Telefono = string.Empty;
             Estado = true;
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
+            Ciudad = new Ciudades();
 
             Viajes = new HashSet<ViajesEncabezado>();
         }

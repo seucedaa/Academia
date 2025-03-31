@@ -1,9 +1,6 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
 using Academia.SIMOVIA.WebAPI.Utilities;
-using System;
-using System.Collections.Generic;
-using Xunit;
 
 namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
 {
@@ -20,13 +17,13 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
             Add(ViajeConCamposObligatoriosFaltantes(), RequirementValido(), false, Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", "Fecha y Hora, Sucursal, Transportista, Usuario Creación, Asignar colaboradores"));
             Add(ViajeSinSucursal(), RequirementValido(), false, Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", "Sucursal"));
             Add(ViajeConFechaInvalida(), RequirementValido(), false, Mensajes.INGRESAR_VALIDO.Replace("@campo", "Fecha y Hora de Viaje"));
-            Add(ViajeConColaboradorDuplicado(), RequirementValido(), false, Mensajes.ASIGNAR_VARIOS.Replace("@articulo","el").Replace("@entidad", "Colaborador ID 3"));
-            Add(ViajeConColaboradoresDuplicados(), RequirementValido(), false, Mensajes.ASIGNAR_VARIOS.Replace("@articulo","los").Replace("@entidad", "Colaboradores ID 3, 5"));
+            Add(ViajeConColaboradorDuplicado(), RequirementValido(), false, Mensajes.ASIGNAR_VARIOS.Replace("@articulo", "el").Replace("@entidad", "Colaborador ID 3"));
+            Add(ViajeConColaboradoresDuplicados(), RequirementValido(), false, Mensajes.ASIGNAR_VARIOS.Replace("@articulo", "los").Replace("@entidad", "Colaboradores ID 3, 5"));
             Add(ViajeConSucursalInexistente(), RequirementSucursalNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal"));
             Add(ViajeConTransportistaInexistente(), RequirementTransportistaNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Transportista"));
             Add(ViajeConUsuarioInexistente(), RequirementUsuarioNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Usuario"));
             Add(ViajeBase(), RequirementUsuarioSinPermiso(), false, Mensajes.SIN_PERMISO);
-            Add(ViajeBase(), RequirementUsuarioEsGerente(), true, null);
+            Add(ViajeBase(), RequirementUsuarioEsGerente(), true, "");
             Add(ViajeConColaboradorInexistente(), RequirementColaboradorNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Colaborador ID 10"));
             Add(ViajeConColaboradoresInexistentes(), RequirementColaboradoresNoExisten(), false, Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", "Colaboradores ID 10, 11"));
             Add(ViajeConColaboradorNoDisponible(), RequirementColaboradorNoDisponible(), false, Mensajes.COLABORADOR_NO_VALIDO.Replace("@colaboradorId", "4"));
@@ -34,7 +31,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
             Add(ViajeSinColaboradores(), RequirementValido(), false, Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", "Asignar colaboradores"));
 
 
-            Add(_viajeBase, _requirementBase, true, null);
+            Add(_viajeBase, _requirementBase, true, "");
         }
 
         #region Viajes
@@ -87,7 +84,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
         {
             v.ViajesDetalle.Add(new ViajesDetalle { ColaboradorId = 3 });
         });
-        
+
         private ViajesEncabezado ViajeConColaboradoresDuplicados() => ModificarViaje(v =>
         {
             v.ViajesDetalle.Add(new ViajesDetalle { ColaboradorId = 3 });
@@ -136,8 +133,9 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
 
         private ViajesEncabezado ViajeSinColaboradores() => ModificarViaje(v =>
         {
-            v.ViajesDetalle = null;
+            v.ViajesDetalle = new List<ViajesDetalle>();
         });
+
 
 
         #endregion

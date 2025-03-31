@@ -1,6 +1,4 @@
 ﻿using Academia.SIMOVIA.WebAPI.Utilities;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements
 {
@@ -27,7 +25,11 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements
             };
         }
 
-
+        public RegistroViajeDomainRequirement()
+        {
+            ColaboradoresNoExistentes = new List<int>();
+            ColaboradoresNoDisponibles = new List<int>();
+        }
         public bool SucursalExiste { get; set; }
         public bool TransportistaExiste { get; set; }
         public bool UsuarioExiste { get; set; }
@@ -47,13 +49,13 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements
             if (!UsuarioEsAdministrador && !UsuarioEsGerente)
                 errores.Add(Mensajes.SIN_PERMISO);
 
-            if (ColaboradoresNoExistentes.Any())
+            if (ColaboradoresNoExistentes.Count > 0)
             {
                 errores.Add(ColaboradoresNoExistentes.Count == 1 ? Mensajes.NO_EXISTE.Replace("@Entidad", $"Colaborador ID {ColaboradoresNoExistentes.First()}")
                     : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", $"Colaboradores ID {string.Join(", ", ColaboradoresNoExistentes)}"));
             }
 
-            if (ColaboradoresNoDisponibles.Any())
+            if (ColaboradoresNoDisponibles.Count > 0)
             {
                 errores.Add(ColaboradoresNoDisponibles.Count == 1 ? Mensajes.COLABORADOR_NO_VALIDO.Replace("@colaboradorId", ColaboradoresNoDisponibles.First().ToString())
                     : Mensajes.COLABORADORES_NO_VALIDOS.Replace("@colaboradoresIds", string.Join(", ", ColaboradoresNoDisponibles)));
@@ -63,6 +65,6 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements
         }
 
 
-        public bool EsValido() => !ObtenerErrores().Any();
+        public bool EsValido() => ObtenerErrores().Count == 0;
     }
 }

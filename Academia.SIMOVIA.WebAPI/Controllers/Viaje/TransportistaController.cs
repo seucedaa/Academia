@@ -8,7 +8,8 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
     public class TransportistaController : Controller
     {
         private readonly ViajeService _viajeService;
-        public TransportistaController(ViajeService viajeService) {
+        public TransportistaController(ViajeService viajeService)
+        {
             _viajeService = viajeService;
         }
 

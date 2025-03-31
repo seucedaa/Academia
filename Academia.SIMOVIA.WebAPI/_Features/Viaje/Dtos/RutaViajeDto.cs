@@ -12,6 +12,11 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
 
     public class WaypointDto
     {
+        public WaypointDto()
+        {
+            Colaborador = string.Empty;
+            DireccionExacta = string.Empty;
+        }
         public string Colaborador { get; set; }
         public decimal Latitud { get; set; }
         public decimal Longitud { get; set; }

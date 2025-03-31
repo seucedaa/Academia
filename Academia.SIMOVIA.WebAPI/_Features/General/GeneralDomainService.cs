@@ -1,12 +1,7 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements;
-using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
-using Academia.SIMOVIA.WebAPI.Infrastructure;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
 using Academia.SIMOVIA.WebAPI.Utilities;
-using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 
 namespace Academia.SIMOVIA.WebAPI._Features.General
@@ -47,14 +42,29 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
 
         public Response<Colaboradores> ValidarRegistrarDatosColaborador(Colaboradores colaboradorDto)
         {
-            List<string> camposFaltantes = new List<string>();
+            List<string> camposFaltantes = ObtenerCamposFaltantes(colaboradorDto);
+
+            if (camposFaltantes.Count > 0)
+            {
+                string mensaje = camposFaltantes.Count == 1
+                    ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First())
+                    : Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", string.Join(", ", camposFaltantes));
+
+                return new Response<Colaboradores> { Exitoso = false, Mensaje = mensaje };
+            }
+
+            return new Response<Colaboradores> { Exitoso = true };
+        }
+
+        private static List<string> ObtenerCamposFaltantes(Colaboradores colaboradorDto)
+        {
+            var camposFaltantes = new List<string>();
 
             if (string.IsNullOrEmpty(colaboradorDto.DNI)) camposFaltantes.Add("DNI");
             if (string.IsNullOrEmpty(colaboradorDto.Nombres)) camposFaltantes.Add("Nombres");
             if (string.IsNullOrEmpty(colaboradorDto.Apellidos)) camposFaltantes.Add("Apellidos");
             if (string.IsNullOrEmpty(colaboradorDto.CorreoElectronico)) camposFaltantes.Add("Correo Electrónico");
             if (string.IsNullOrEmpty(colaboradorDto.Telefono)) camposFaltantes.Add("Teléfono");
-            if (string.IsNullOrEmpty(colaboradorDto.Sexo)) camposFaltantes.Add("Sexo");
             if (colaboradorDto.FechaNacimiento == default) camposFaltantes.Add("Fecha de Nacimiento");
             if (string.IsNullOrEmpty(colaboradorDto.DireccionExacta)) camposFaltantes.Add("Dirección Exacta");
             if (colaboradorDto.Latitud == 0) camposFaltantes.Add("Latitud");
@@ -63,20 +73,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             if (colaboradorDto.CargoId <= 0) camposFaltantes.Add("Cargo");
             if (colaboradorDto.CiudadId <= 0) camposFaltantes.Add("Ciudad");
             if (colaboradorDto.UsuarioCreacionId <= 0) camposFaltantes.Add("Usuario Creación");
-            if (colaboradorDto.ColaboradoresPorSucursal == null || !colaboradorDto.ColaboradoresPorSucursal.Any()) camposFaltantes.Add("Asignar sucursales");
+            if (colaboradorDto.ColaboradoresPorSucursal == null || colaboradorDto.ColaboradoresPorSucursal.Count == 0)
+                camposFaltantes.Add("Asignar sucursales");
 
-            if (camposFaltantes.Any())
-            {
-                string mensaje = camposFaltantes.Count == 1 ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First()) 
-                    : Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", string.Join(", ", camposFaltantes)); 
-
-                return new Response<Colaboradores> { Exitoso = false, Mensaje = mensaje };
-            }
-
-            return new Response<Colaboradores> { Exitoso = true };
+            return camposFaltantes;
         }
 
-        private Response<Colaboradores> ValidarLongitudesCampos(Colaboradores colaborador)
+
+        private static Response<Colaboradores> ValidarLongitudesCampos(Colaboradores colaborador)
         {
             var errores = new List<string>();
 
@@ -87,7 +91,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             if (colaborador.Telefono.Length > 8) errores.Add("Teléfono");
             if (colaborador.DireccionExacta.Length > 100) errores.Add("Dirección Exacta");
 
-            if (errores.Any())
+            if (errores.Count > 0)
             {
                 string mensaje = errores.Count == 1 ? Mensajes.LONGITUD_INVALIDA.Replace("@campo", errores.First()) :
                     Mensajes.LONGITUDES_INVALIDAS.Replace("@campos", string.Join(", ", errores));
@@ -114,7 +118,8 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 };
             }
 
-            if (colaboradorDto.Sexo.ToUpper() != "M" && colaboradorDto.Sexo.ToUpper() != "F")
+            if (!colaboradorDto.Sexo.Equals("M", StringComparison.OrdinalIgnoreCase) &&
+              !colaboradorDto.Sexo.Equals("F", StringComparison.OrdinalIgnoreCase))
             {
                 return new Response<Colaboradores> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDO.Replace("@campo", "sexo") };
             }
@@ -129,7 +134,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 .Where(g => g.Count() > 1)
                 .ToList();
 
-            if (sucursalesDuplicadas.Any())
+            if (sucursalesDuplicadas.Count > 0)
             {
                 return new Response<Colaboradores>
                 {
@@ -141,7 +146,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             var distanciaInvalida = colaboradorDto.ColaboradoresPorSucursal.Where(s => s.DistanciaKm <= 0 || s.DistanciaKm > 50)
                 .Select(s => s.DistanciaKm.ToString(CultureInfo.InvariantCulture)).ToList();
 
-            if (distanciaInvalida.Any())
+            if (distanciaInvalida.Count > 0)
             {
                 return new Response<Colaboradores>
                 {

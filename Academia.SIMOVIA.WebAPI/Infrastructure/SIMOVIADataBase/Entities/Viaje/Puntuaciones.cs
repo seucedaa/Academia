@@ -9,6 +9,9 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         public Puntuaciones()
         {
             Descripcion = string.Empty;
+            ViajeEncabezado = new ViajesEncabezado();
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
         }
 
         public int PuntuacionId { get; set; }

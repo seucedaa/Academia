@@ -10,15 +10,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
         private readonly string _urlDistanceMatrixApi;
         private readonly string _urlDirectionsApi;
         private readonly string _apiKey;
-        private readonly IConfiguration _configuration;
 
         public UbicacionService(IConfiguration configuration)
         {
-            _configuration = configuration;
-            _urlDistanceMatrixApi = _configuration["DISTANCE_MATRIX_API_URL"];
-            _urlDirectionsApi = _configuration["DIRECTIONS_API_URL"];
-            _apiKey = _configuration["API_KEY"];
+            _urlDistanceMatrixApi = configuration["DISTANCE_MATRIX_API_URL"] ?? string.Empty;
+            _urlDirectionsApi = configuration["DIRECTIONS_API_URL"] ?? string.Empty;
+            _apiKey = configuration["API_KEY"] ?? string.Empty;
         }
+
         public async Task<DistanceMatrixApiResponseDto> ObtenerDistanciasSucursales(decimal latitud, decimal longitud, List<Sucursales> sucursales)
         {
             try
@@ -32,12 +31,13 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 using HttpClient client = new HttpClient();
                 string response = await client.GetStringAsync(url);
 
-                return JsonConvert.DeserializeObject<DistanceMatrixApiResponseDto>(response);
+                return JsonConvert.DeserializeObject<DistanceMatrixApiResponseDto>(response) ?? new DistanceMatrixApiResponseDto();
             }
             catch (Exception)
             {
-                return null;
+                return new DistanceMatrixApiResponseDto();
             }
+
         }
 
         public async Task<decimal> CalcularDistanciaViaje(decimal latOrigen, decimal lonOrigen, List<(decimal Latitud, decimal Longitud)> colaboradores)
@@ -49,9 +49,9 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
             using HttpClient client = new HttpClient();
             string response = await client.GetStringAsync(url);
-            RutaGoogleDto googleResponse = JsonConvert.DeserializeObject<RutaGoogleDto>(response);
+            RutaGoogleDto googleResponse = JsonConvert.DeserializeObject<RutaGoogleDto>(response) ?? new RutaGoogleDto();
 
-            if (googleResponse.routes == null || !googleResponse.routes.Any())
+            if (googleResponse.routes == null || googleResponse.routes.Count == 0)
                 return -1;
 
             decimal distanciaKm = Convert.ToDecimal(googleResponse.routes[0].legs.Sum(l => l.distance.value) / 1000.0);

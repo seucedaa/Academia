@@ -6,6 +6,18 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
     [ExcludeFromCodeCoverage]
     public class ColaboradorDto
     {
+        public ColaboradorDto()
+        {
+            DNI = string.Empty;
+            Nombres = string.Empty;
+            Apellidos = string.Empty;
+            CorreoElectronico = string.Empty;
+            Telefono = string.Empty;
+            Sexo = string.Empty;
+            DireccionExacta = string.Empty;
+            Sucursales = new List<ColaboradorPorSucursalDto>();
+        }
+
         public string DNI { get; set; }
         public string Nombres { get; set; }
         public string Apellidos { get; set; }
@@ -22,5 +34,4 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
         public int UsuarioCreacionId { get; set; }
         public List<ColaboradorPorSucursalDto> Sucursales { get; set; }
     }
-    
 }

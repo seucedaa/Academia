@@ -9,6 +9,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         public ViajesDetalle()
         {
             Estado = true;
+            ViajeEncabezado = new ViajesEncabezado();
+            Colaborador = new Colaboradores();
         }
 
         public int ViajeDetalleId { get; set; }

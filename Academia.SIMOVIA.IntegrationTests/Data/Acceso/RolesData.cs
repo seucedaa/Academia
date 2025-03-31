@@ -1,5 +1,4 @@
 ﻿using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
-using System;
 
 namespace Academia.SIMOVIA.IntegrationTests.Data.Acceso
 {

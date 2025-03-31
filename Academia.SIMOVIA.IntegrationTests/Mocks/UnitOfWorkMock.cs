@@ -8,11 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Academia.SIMOVIA.IntegrationTests.Mocks
 {
@@ -28,7 +23,7 @@ namespace Academia.SIMOVIA.IntegrationTests.Mocks
 
         public void ConfigureMockUnitOfWork(IServiceCollection services)
         {
-            services.AddDbContext<SIMOVIAContext>(options =>
+            services.AddDbContext<SimoviaContext>(options =>
             {
                 options.UseInMemoryDatabase("TestSIMOVIA")
                        .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
@@ -36,7 +31,7 @@ namespace Academia.SIMOVIA.IntegrationTests.Mocks
 
             services.AddScoped<IUnitOfWork>(sp =>
             {
-                var dbContext = sp.GetRequiredService<SIMOVIAContext>();
+                var dbContext = sp.GetRequiredService<SimoviaContext>();
                 var realUnitOfWork = new UnitOfWork(dbContext);
 
                 if (_exceptionSimulation != null)

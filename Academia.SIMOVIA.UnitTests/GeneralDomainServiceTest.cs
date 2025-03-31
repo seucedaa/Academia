@@ -1,10 +1,8 @@
 ﻿using Academia.SIMOVIA.UnitTests.DataTests.General;
 using Academia.SIMOVIA.WebAPI._Features.General;
 using Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements;
-using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
 using FluentAssertions;
-using Xunit;
 
 namespace Academia.SIMOVIA.UnitTests
 {
@@ -24,7 +22,10 @@ namespace Academia.SIMOVIA.UnitTests
         {
             var resultado = _generalDomainService.ValidarColaboradorParaRegistro(colaborador, domainRequirement);
 
-            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje });
+            resultado.Mensaje ??= "";
+
+            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje ?? "" });
+
         }
 
     }

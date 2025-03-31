@@ -3,7 +3,6 @@ using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Utilities;
 using System.Security.Cryptography;
 using System.Text;
-using Xunit;
 
 namespace Academia.SIMOVIA.UnitTests.DataTests.Acceso
 {
@@ -22,7 +21,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Acceso
             Add(Credenciales(), ValidarCredenciales(), false, Mensajes.CREDENCIALES_INCORRECTAS);
             Add(CredencialesCorrectas(), UsuarioCorrectoDesactivado(), false, Mensajes.DESACTIVADO.Replace("@Entidad", "Usuario"));
 
-            Add(CredencialesCorrectas(), ValidarCredenciales(), true, null);
+            Add(CredencialesCorrectas(), ValidarCredenciales(), true, "");
         }
 
         private byte[] HashClave(string clave)
@@ -59,7 +58,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Acceso
             Usuario = "sua",
             Clave = "sua2"
         };
-            
+
         public Usuarios UsuarioNoEncontrado() => new Usuarios
         {
             UsuarioId = 0

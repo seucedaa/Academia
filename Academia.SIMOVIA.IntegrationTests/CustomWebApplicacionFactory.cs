@@ -17,11 +17,9 @@ namespace Academia.SIMOVIA.IntegrationTests
 {
     public class CustomWebApplicationFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
     {
-        private Mock<IUbicacionService> _mockUbicacionService;
+        private Mock<IUbicacionService> _mockUbicacionService = new Mock<IUbicacionService>();
         public Mock<IUnitOfWork>? MockUnitOfWork { get; private set; }
         private Func<Task<bool>>? _exceptionSimulation;
-
-        public CustomWebApplicationFactory() { }
 
         public void ConfigureMock(Mock<IUbicacionService> mockUbicacionService)
         {
@@ -37,7 +35,7 @@ namespace Academia.SIMOVIA.IntegrationTests
         {
             builder.ConfigureTestServices(services =>
             {
-                var dbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<SIMOVIAContext>));
+                var dbContextDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<SimoviaContext>));
                 if (dbContextDescriptor != null)
                     services.Remove(dbContextDescriptor);
 
@@ -49,7 +47,7 @@ namespace Academia.SIMOVIA.IntegrationTests
                 if (ubicacionServiceDescriptor != null)
                     services.Remove(ubicacionServiceDescriptor);
 
-                services.AddDbContext<SIMOVIAContext>(options =>
+                services.AddDbContext<SimoviaContext>(options =>
                 {
                     options.UseInMemoryDatabase("TestSIMOVIA")
                            .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
@@ -57,7 +55,7 @@ namespace Academia.SIMOVIA.IntegrationTests
 
                 services.AddScoped<IUnitOfWork>(sp =>
                 {
-                    var dbContext = sp.GetRequiredService<SIMOVIAContext>();
+                    var dbContext = sp.GetRequiredService<SimoviaContext>();
                     var realUnitOfWork = new UnitOfWork(dbContext);
                     if (_exceptionSimulation != null)
                     {

@@ -1,17 +1,10 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
 using Academia.SIMOVIA.WebAPI.Infrastructure;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Utilities;
 using AutoMapper;
-using Farsiman.Infraestructure.Core.Entity.Standard;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Acceso
 {
@@ -19,14 +12,13 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
     {
         private readonly IMapper _mapper;
         private readonly AccesoDomainService _accesoDomainService;
-        private readonly UnitOfWorkBuilder _unitOfWorkBuilder;
         private readonly Farsiman.Domain.Core.Standard.Repositories.IUnitOfWork _unitOfWork;
+
         public AccesoService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, AccesoDomainService accesoDomainService)
         {
             _mapper = mapper;
             _accesoDomainService = accesoDomainService;
-            _unitOfWorkBuilder = unitOfWorkBuilder;
-            _unitOfWork = _unitOfWorkBuilder.BuildDbSIMOVIA();
+            _unitOfWork = unitOfWorkBuilder.BuildDbSIMOVIA();
         }
 
         #region Usuarios
@@ -35,10 +27,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
             try
             {
                 var listado = await _unitOfWork.Repository<Usuarios>().AsQueryable()
-                    .Where(u => u.Estado) 
+                    .Where(u => u.Estado)
                     .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<UsuariosDto>>
                     {
@@ -77,12 +69,15 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
         {
             Usuarios? usuario = await _unitOfWork.Repository<Usuarios>().AsQueryable()
                 .Include(u => u.Rol)
-                .Include(u => u.Colaborador)
-                    .ThenInclude(c => c.Cargo)
-                .Include(u => u.Colaborador.ColaboradoresPorSucursal) 
+                .Include(u => u.Colaborador!)
+                    .ThenInclude(c => c!.Cargo)
+                .Include(u => u.Colaborador!.ColaboradoresPorSucursal)
                 .FirstOrDefaultAsync(u => u.Usuario == usuarioNombre);
 
-            List<PantallaDto>? pantallas = await ObtenerPantallasPermitidas(usuario);
+            if (usuario == null || usuario.Colaborador == null)
+                return new SesionUsuarioDto { Pantallas = new List<PantallaDto>() };
+
+            List<PantallaDto> pantallas = await ObtenerPantallasPermitidas(usuario);
 
             SesionUsuarioDto sesionUsuarioDto = _mapper.Map<SesionUsuarioDto>(usuario);
             sesionUsuarioDto.Pantallas = pantallas;
@@ -90,19 +85,22 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
             return sesionUsuarioDto;
         }
 
-
         public async Task<Response<SesionUsuarioDto>> InicioSesion(InicioSesionDto login)
         {
             try
             {
-                var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
                 Usuarios? usuario = await _unitOfWork.Repository<Usuarios>()
                     .AsQueryable()
-                    .FirstOrDefaultAsync(u => u.Usuario == login.Usuario, cts.Token);
+                    .FirstOrDefaultAsync(u => u.Usuario == login.Usuario);
+
+                if (usuario == null)
+                    return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = Mensajes.CREDENCIALES_INCORRECTAS };
+
                 Response<string> resultadoValidacion = _accesoDomainService.ValidarInicioSesion(login, usuario);
+
                 if (!resultadoValidacion.Exitoso)
                     return new Response<SesionUsuarioDto> { Exitoso = false, Mensaje = resultadoValidacion.Mensaje };
-                
+
                 SesionUsuarioDto usuarioSesion = await ObtenerDatosSesionUsuario(login.Usuario);
 
                 return new Response<SesionUsuarioDto>
@@ -120,19 +118,27 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso
             }
         }
 
-        private async Task<List<PantallaDto>> ObtenerPantallasPermitidas(Usuarios usuario)
+        private async Task<List<PantallaDto>> ObtenerPantallasPermitidas(Usuarios? usuario)
         {
+            if (usuario == null) return new List<PantallaDto>();
+
+            bool esAdministrador = usuario.EsAdministrador;
+            bool tieneCargoValido = usuario.Colaborador?.Cargo?.CargoId == 1;
+
             return await (from pantallas in _unitOfWork.Repository<Pantallas>().AsQueryable()
-                          where usuario.EsAdministrador || usuario.Colaborador.Cargo.CargoId == 1 || 
+                          where esAdministrador || tieneCargoValido ||
                           (from pantallaPorRol in _unitOfWork.Repository<PantallasPorRoles>().AsQueryable()
-                                where pantallaPorRol.RolId == usuario.RolId && pantallaPorRol.PantallaId == pantallas.PantallaId
-                                && pantallas.Estado select pantallaPorRol).Any()
+                           where pantallaPorRol.RolId == usuario.RolId && pantallaPorRol.PantallaId == pantallas.PantallaId
+                           && pantallas.Estado
+                           select pantallaPorRol).Any()
                           select new PantallaDto
-                          { PantallaId = pantallas.PantallaId, 
-                              Descripcion = pantallas.Descripcion, 
+                          {
+                              PantallaId = pantallas.PantallaId,
+                              Descripcion = pantallas.Descripcion,
                               DireccionURL = pantallas.DireccionURL
                           }).ToListAsync();
         }
+
 
         #endregion
     }

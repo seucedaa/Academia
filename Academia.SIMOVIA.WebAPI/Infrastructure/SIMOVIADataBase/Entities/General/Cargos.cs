@@ -9,8 +9,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
         public Cargos()
         {
             Descripcion = string.Empty;
-            Estado = true;
-
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
             Colaboradores = new HashSet<Colaboradores>();
         }
 

@@ -1,15 +1,9 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
+﻿using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements.Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.Enums;
 using Academia.SIMOVIA.WebAPI.Helpers;
-using Academia.SIMOVIA.WebAPI.Infrastructure;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
 using Academia.SIMOVIA.WebAPI.Utilities;
-using Microsoft.EntityFrameworkCore;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 {
@@ -56,7 +50,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             if (sucursal.CiudadId <= 0) camposFaltantes.Add("Ciudad");
             if (sucursal.UsuarioCreacionId <= 0) camposFaltantes.Add("Usuario Creación");
 
-            if (camposFaltantes.Any())
+            if (camposFaltantes.Count > 0)
             {
                 string mensaje = camposFaltantes.Count == 1 ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First())
                     : Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", string.Join(", ", camposFaltantes));
@@ -70,7 +64,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             return new Response<Sucursales> { Exitoso = true };
         }
 
-        private Response<Sucursales> ValidarLongitudesCamposSucursal(Sucursales sucursal)
+        private static Response<Sucursales> ValidarLongitudesCamposSucursal(Sucursales sucursal)
         {
             var errores = new List<string>();
 
@@ -78,7 +72,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             if (sucursal.Telefono.Length > 8) errores.Add("Teléfono");
             if (sucursal.DireccionExacta.Length > 100) errores.Add("Dirección Exacta");
 
-            if (errores.Any())
+            if (errores.Count > 0)
             {
                 string mensaje = errores.Count == 1 ? Mensajes.LONGITUD_INVALIDA.Replace("@campo", errores.First()) :
                     Mensajes.LONGITUDES_INVALIDAS.Replace("@campos", string.Join(", ", errores));
@@ -89,7 +83,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             return new Response<Sucursales> { Exitoso = true };
         }
 
-        public Response<ViajesEncabezado> ValidarViajeParaRegistro(ViajesEncabezado viaje,RegistroViajeDomainRequirement domainRequirement)
+        public Response<ViajesEncabezado> ValidarViajeParaRegistro(ViajesEncabezado viaje, RegistroViajeDomainRequirement domainRequirement)
         {
             Response<ViajesEncabezado> validacionDatos = ValidarCamposObligatorios(viaje);
             if (!validacionDatos.Exitoso)
@@ -115,7 +109,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             return new Response<ViajesEncabezado> { Exitoso = true };
         }
 
-        private Response<ViajesEncabezado> ValidarCamposObligatorios(ViajesEncabezado viaje)
+        private static Response<ViajesEncabezado> ValidarCamposObligatorios(ViajesEncabezado viaje)
         {
             var camposFaltantes = new List<string>();
 
@@ -123,9 +117,9 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             if (viaje.SucursalId <= 0) camposFaltantes.Add("Sucursal");
             if (viaje.TransportistaId <= 0) camposFaltantes.Add("Transportista");
             if (viaje.UsuarioCreacionId <= 0) camposFaltantes.Add("Usuario Creación");
-            if (viaje.ViajesDetalle == null || !viaje.ViajesDetalle.Any()) camposFaltantes.Add("Asignar colaboradores");
+            if (viaje.ViajesDetalle == null || viaje.ViajesDetalle.Count == 0) camposFaltantes.Add("Asignar colaboradores");
 
-            if (camposFaltantes.Any())
+            if (camposFaltantes.Count > 0)
             {
                 string mensaje = camposFaltantes.Count == 1
                     ? Mensajes.CAMPO_OBLIGATORIO.Replace("@Campo", camposFaltantes.First())
@@ -137,7 +131,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             return new Response<ViajesEncabezado> { Exitoso = true };
         }
 
-        private Response<ViajesEncabezado> ValidarDatosIngresados(ViajesEncabezado viaje)
+        private static Response<ViajesEncabezado> ValidarDatosIngresados(ViajesEncabezado viaje)
         {
             var fechaActual = DateTime.Today;
             var fechaMinima = fechaActual.AddYears(-1);
@@ -155,7 +149,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             return new Response<ViajesEncabezado> { Exitoso = true };
         }
 
-        private Response<ViajesEncabezado> ValidarColaboradoresAsignados(ViajesEncabezado viaje)
+        private static Response<ViajesEncabezado> ValidarColaboradoresAsignados(ViajesEncabezado viaje)
         {
             var colaboradoresDuplicados = viaje.ViajesDetalle
                 .GroupBy(c => c.ColaboradorId)
@@ -163,7 +157,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 .Select(g => g.Key)
                 .ToList();
 
-            if (colaboradoresDuplicados.Any())
+            if (colaboradoresDuplicados.Count > 0)
             {
                 string mensaje = colaboradoresDuplicados.Count == 1
                     ? Mensajes.ASIGNAR_VARIOS.Replace("@articulo", "el").Replace("@entidad", $"Colaborador ID {colaboradoresDuplicados.First()}")
@@ -207,7 +201,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             return new Response<List<SucursalesDto>> { Exitoso = true };
         }
 
-        private Response<object> ValidarUbicacionInterna(decimal latitud, decimal longitud)
+        private static Response<object> ValidarUbicacionInterna(decimal latitud, decimal longitud)
         {
             if (latitud < -90 || latitud > 90)
                 return new Response<object> { Exitoso = false, Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "latitud") };

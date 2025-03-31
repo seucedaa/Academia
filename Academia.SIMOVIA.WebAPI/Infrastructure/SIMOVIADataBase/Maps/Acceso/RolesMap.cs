@@ -11,8 +11,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Acceso
             builder.ToTable("Roles", "Acceso");
             builder.HasKey(x => x.RolId);
 
-            builder.Property(x => x.RolId)  
-           .HasColumnName("Rol_Id")  
+            builder.Property(x => x.RolId)
+           .HasColumnName("Rol_Id")
            .IsRequired();
 
             builder.Property(x => x.Descripcion)

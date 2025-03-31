@@ -1,5 +1,4 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.General;
+﻿using Academia.SIMOVIA.WebAPI._Features.General;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Academia.SIMOVIA.WebAPI.Controllers.General

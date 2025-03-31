@@ -25,10 +25,7 @@
         "FS_SQL_SIMOVIA_DBNAME": "SIMOVIA",
         "FS_SQL_SIMOVIA_USER": "AcademiaDEV",
         "FS_SQL_SIMOVIA_PASSWORD": "Academia.1"
-        //"FS_SQL_SIMOVIA_SERVER": "localhost,1433",
-        //"FS_SQL_SIMOVIA_DBNAME": "SIMOVIA",
-        //"FS_SQL_SIMOVIA_USER": "sa",
-        //"FS_SQL_SIMOVIA_PASSWORD": "YourStrong!Passw0rd"
+        
       }
     },
     "IIS Express": {

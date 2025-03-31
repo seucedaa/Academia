@@ -5,6 +5,12 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
     [ExcludeFromCodeCoverage]
     public class SucursalDto
     {
+        public SucursalDto()
+        {
+            Descripcion = string.Empty;
+            Telefono = string.Empty;
+            DireccionExacta = string.Empty;
+        }
         public string Descripcion { get; set; }
         public string Telefono { get; set; }
         public string DireccionExacta { get; set; }

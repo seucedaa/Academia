@@ -5,6 +5,11 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
     [ExcludeFromCodeCoverage]
     public class MonedasPorPais
     {
+        public MonedasPorPais()
+        {
+            Pais = new Paises();
+            Moneda = new Monedas();
+        }
         public int MonedaPorPaisId { get; set; }
         public int PaisId { get; set; }
         public int MonedaId { get; set; }

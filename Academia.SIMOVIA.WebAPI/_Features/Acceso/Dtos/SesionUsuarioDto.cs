@@ -5,6 +5,16 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos
     [ExcludeFromCodeCoverage]
     public class SesionUsuarioDto
     {
+        public SesionUsuarioDto()
+        {
+            Usuario = string.Empty;
+            RolDescripcion = string.Empty;
+            NombreColaborador = string.Empty;
+            CorreoElectronico = string.Empty;
+            Pantallas = new List<PantallaDto>();
+            Sucursales = new List<int>();
+        }
+
         public int UsuarioId { get; set; }
         public string Usuario { get; set; }
         public bool EsAdministrador { get; set; }
@@ -18,6 +28,12 @@ namespace Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos
 
     public class PantallaDto
     {
+        public PantallaDto()
+        {
+            Descripcion = string.Empty;
+            DireccionURL = string.Empty;
+        }
+
         public int PantallaId { get; set; }
         public string Descripcion { get; set; }
         public string DireccionURL { get; set; }

@@ -1,0 +1,42 @@
+env:
+  normal:
+    ASPNETCORE_ENVIRONMENT: "Production"
+    ASPNETCORE_URLS: "http://*:80"
+    CODIGO_PAIS: "HN"
+    FS_SQL_SIMOVIA_DBNAME: SIMOVIA
+
+  secret:
+    - name: FS_SQL_SIMOVIA_USER
+      secretName: academia-sql-connection
+      key: user
+    - name: FS_SQL_SIMOVIA_PASSWORD
+      secretName: academia-sql-connection
+      key: password
+    - name: FS_SQL_SIMOVIA_SERVER
+      secretName: academia-sql-connection
+      key: server
+
+defaultRoute:
+ include:
+  entorno: true
+  empresa: false
+  pais: false
+
+customRoute:
+ enabled: true
+ domain: apps.academia-dev.grupofarsiman.io
+ tlsSecretName: tls-dev-academia.grupofarsiman.io
+
+autoscaling:
+ enabled: false
+ minReplicas: 1
+ maxReplicas: 2
+ targetCPUUtilizationPercentage: 80
+ targetMemoryUtilizationPercentage: 80
+
+appInfo:
+ sistema: "SIMOVIA"
+ equipo: "Academia"
+ tecnologia: "NetCore"
+ app: "SIMOVIAApi"
+ cluster: k8s-dev

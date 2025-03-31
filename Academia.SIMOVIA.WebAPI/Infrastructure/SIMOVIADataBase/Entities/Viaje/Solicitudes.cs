@@ -10,6 +10,11 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         {
             Descripcion = string.Empty;
             Estado = true;
+            Usuario = new Usuarios();
+            UsuarioAprobado = new Usuarios();
+            ViajeEncabezado = new ViajesEncabezado();
+            Sucursal = new Sucursales();
+            EstadoSolicitud = new EstadosSolicitudes();
 
             Notificaciones = new HashSet<Notificaciones>();
         }
@@ -32,6 +37,6 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         public virtual ViajesEncabezado ViajeEncabezado { get; set; }
         public virtual Sucursales Sucursal { get; set; }
         public virtual EstadosSolicitudes EstadoSolicitud { get; set; }
-        public virtual ICollection<Notificaciones> Notificaciones { get;set; } 
+        public virtual ICollection<Notificaciones> Notificaciones { get; set; }
     }
 }

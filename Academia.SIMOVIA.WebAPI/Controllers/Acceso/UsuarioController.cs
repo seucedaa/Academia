@@ -10,7 +10,8 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
     public class UsuarioController : ControllerBase
     {
         private readonly AccesoService _accesoService;
-        public UsuarioController(AccesoService accesoService) {
+        public UsuarioController(AccesoService accesoService)
+        {
             _accesoService = accesoService;
         }
 
@@ -26,7 +27,7 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Acceso
         {
             var resultado = await _accesoService.InicioSesion(login);
 
-            if(resultado.Exitoso)
+            if (resultado.Exitoso)
                 return Ok(resultado);
 
             switch (resultado.Mensaje)

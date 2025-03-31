@@ -9,8 +9,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
         {
             Descripcion = string.Empty;
             DireccionURL = string.Empty;
-            Estado = true;
-
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
             PantallasPorRoles = new HashSet<PantallasPorRoles>();
         }
 

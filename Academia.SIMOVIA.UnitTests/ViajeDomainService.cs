@@ -1,15 +1,9 @@
 ﻿using Academia.SIMOVIA.UnitTests.DataTests.Viaje;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 using Academia.SIMOVIA.WebAPI._Features.Viaje;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FluentAssertions;
+using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements.Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
-using static Academia.SIMOVIA.UnitTests.DataTests.Viaje.ViajeTest;
+using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
+using FluentAssertions;
 
 namespace Academia.SIMOVIA.UnitTests
 {
@@ -29,7 +23,9 @@ namespace Academia.SIMOVIA.UnitTests
         {
             var resultado = _viajeDomainService.ValidarViajeParaRegistro(viaje, domainRequirement);
 
-            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje });
+            resultado.Mensaje ??= "";
+
+            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje ?? "" });
         }
 
         [Theory]
@@ -39,7 +35,9 @@ namespace Academia.SIMOVIA.UnitTests
         {
             var resultado = _viajeDomainService.ValidarSucursalParaRegistro(sucursal, domainRequirement);
 
-            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje });
+            resultado.Mensaje ??= "";
+
+            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje ?? "" });
         }
 
         [Theory]
@@ -48,7 +46,9 @@ namespace Academia.SIMOVIA.UnitTests
         {
             var resultado = _viajeDomainService.ValidarDistancia(distanciaCantidad, distanciaTotalKm);
 
-            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje });
+            resultado.Mensaje ??= "";
+
+            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje ?? "" });
         }
 
         [Theory]
@@ -56,7 +56,9 @@ namespace Academia.SIMOVIA.UnitTests
         public void Dado_Una_Ubicacion_Cuando_Se_Valida_DebeRetornarElResultadoEsperado(decimal latitud, decimal longitud, bool esperadoExito, string esperadoMensaje)
         {
             var resultado = _viajeDomainService.ValidarUbicacion(latitud, longitud);
-            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje });
+            resultado.Mensaje ??= "";
+
+            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje ?? "" });
         }
 
 

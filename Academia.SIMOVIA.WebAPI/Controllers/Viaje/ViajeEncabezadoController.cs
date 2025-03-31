@@ -1,8 +1,6 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.General;
-using Academia.SIMOVIA.WebAPI._Features.Viaje;
-using Microsoft.AspNetCore.Mvc;
+﻿using Academia.SIMOVIA.WebAPI._Features.Viaje;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
 {
@@ -45,7 +43,7 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
         }
 
         [HttpGet("ObtenerViajesDisponibles/{sucursalId?}/{fecha?}")]
-        public async Task<IActionResult> ObtenerViajesDisponibles([FromRoute] int? sucursalId,[FromRoute] DateTime? fecha)
+        public async Task<IActionResult> ObtenerViajesDisponibles([FromRoute] int? sucursalId, [FromRoute] DateTime? fecha)
         {
             var resultado = await _viajeService.ObtenerViajesDisponibles(sucursalId, fecha);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);

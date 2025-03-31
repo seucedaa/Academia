@@ -5,6 +5,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.Dtos
     [ExcludeFromCodeCoverage]
     public class ColaboradoresDto
     {
+        public ColaboradoresDto()
+        {
+            DNI = string.Empty;
+            Nombres = string.Empty;
+            Apellidos = string.Empty;
+            CorreoElectronico = string.Empty;
+            Telefono = string.Empty;
+            Sexo = string.Empty;
+            FechaNacimiento = string.Empty;
+            DireccionExacta = string.Empty;
+            EstadoCivilDescripcion = string.Empty;
+            CargoDescripcion = string.Empty;
+            CiudadDescripcion = string.Empty;
+        }
+
         public int ColaboradorId { get; set; }
         public string DNI { get; set; }
         public string Nombres { get; set; }

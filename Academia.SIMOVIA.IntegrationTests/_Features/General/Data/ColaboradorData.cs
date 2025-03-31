@@ -1,11 +1,7 @@
 ﻿using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Academia.SIMOVIA.IntegrationTests._Features.General.Data
 {

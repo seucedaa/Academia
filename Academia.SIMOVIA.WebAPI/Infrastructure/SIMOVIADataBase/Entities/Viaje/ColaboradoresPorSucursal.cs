@@ -7,6 +7,13 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
     [ExcludeFromCodeCoverage]
     public class ColaboradoresPorSucursal
     {
+
+        public ColaboradoresPorSucursal()
+        {
+            Colaborador = new Colaboradores();
+            Sucursal = new Sucursales();
+            UsuarioModificacion = new Usuarios();
+        }
         public int ColaboradorPorSucursalId { get; set; }
         public decimal DistanciaKm { get; set; }
         public int ColaboradorId { get; set; }

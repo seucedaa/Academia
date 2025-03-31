@@ -1,12 +1,6 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements.Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
+﻿using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements.Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
 using Academia.SIMOVIA.WebAPI.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
 {
@@ -40,7 +34,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
             Add(SucursalConCiudadInexistente(), RequirementCiudadNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Ciudad"));
             Add(SucursalConUsuarioInexistente(), RequirementUsuarioNoExiste(), false, Mensajes.NO_EXISTE.Replace("@Entidad", "Usuario"));
 
-            Add(_sucursalBase, _requirementBase, true, null);
+            Add(_sucursalBase, _requirementBase, true, "");
         }
 
         #region Sucursales
@@ -101,8 +95,8 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
         });
         private Sucursales SucursalConUbicacionInvalida() => ModificarSucursal(s =>
         {
-            s.Latitud = 100.0000m;  
-            s.Longitud = 200.0000m; 
+            s.Latitud = 100.0000m;
+            s.Longitud = 200.0000m;
         });
         private Sucursales SucursalConLongitudInvalida() => ModificarSucursal(s =>
         {
@@ -111,24 +105,24 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
         });
         private Sucursales SucursalConLatitudInvalidaBaja() => ModificarSucursal(s =>
         {
-            s.Latitud = -91m;  
+            s.Latitud = -91m;
             s.Longitud = -90.5069m;
         });
 
         private Sucursales SucursalConLatitudInvalidaAlta() => ModificarSucursal(s =>
         {
-            s.Latitud = 91m; 
+            s.Latitud = 91m;
             s.Longitud = -90.5069m;
         });
         private Sucursales SucursalConLongitudInvalidaBaja() => ModificarSucursal(s =>
         {
             s.Latitud = 14.6349m;
-            s.Longitud = -181m;  
+            s.Longitud = -181m;
         });
         private Sucursales SucursalConLongitudInvalidaAlta() => ModificarSucursal(s =>
         {
             s.Latitud = 14.6349m;
-            s.Longitud = 181m;  
+            s.Longitud = 181m;
         });
 
 
@@ -136,7 +130,7 @@ namespace Academia.SIMOVIA.UnitTests.DataTests.Viaje
 
         private Sucursales SucursalConUbicacionDuplicada() => ModificarSucursal(s =>
         {
-            s.Latitud = 14.6349m;  
+            s.Latitud = 14.6349m;
             s.Longitud = -90.5069m;
         });
 

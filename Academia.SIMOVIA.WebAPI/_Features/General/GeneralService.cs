@@ -1,5 +1,4 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements;
+﻿using Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements;
 using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
@@ -9,11 +8,7 @@ using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
 using Academia.SIMOVIA.WebAPI.Utilities;
 using AutoMapper;
-using Farsiman.Infraestructure.Core.Entity.Standard;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq.Expressions;
-using System.Reflection.Metadata.Ecma335;
 
 namespace Academia.SIMOVIA.WebAPI._Features.General
 {
@@ -40,7 +35,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     .Where(c => c.Estado)
                     .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<CargosDto>>
                     {
@@ -86,7 +81,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 var listado = await _unitOfWork.Repository<EstadosCiviles>().AsQueryable()
                     .Where(c => c.Estado).ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<EstadosCivilesDto>>
                     {
@@ -132,7 +127,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 var listado = await _unitOfWork.Repository<Ciudades>().AsQueryable()
                     .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<CiudadesDto>>
                     {
@@ -177,12 +172,12 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             {
                 List<Colaboradores> listado = await _unitOfWork.Repository<Colaboradores>().AsQueryable()
                  .Where(c => c.Estado)
-                 .Include(c => c.EstadoCivil) 
-                 .Include(c => c.Cargo)       
-                 .Include(c => c.Ciudad)      
+                 .Include(c => c.EstadoCivil)
+                 .Include(c => c.Cargo)
+                 .Include(c => c.Ciudad)
                  .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<ColaboradoresDto>>
                     {
@@ -200,7 +195,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     Data = colaboradoresDto
                 };
             }
-            catch (DbUpdateException) 
+            catch (DbUpdateException)
             {
                 return new Response<List<ColaboradoresDto>>
                 {
@@ -208,7 +203,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     Mensaje = Mensajes.ERROR_LISTADO.Replace("@entidad", "colaboradores")
                 };
             }
-            catch (Exception) 
+            catch (Exception)
             {
                 return new Response<List<ColaboradoresDto>>
                 {
@@ -275,14 +270,14 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 bool sucursalExiste = await _unitOfWork.Repository<Sucursales>().AsQueryable().AnyAsync(s => s.SucursalId == sucursalId);
 
                 if (!sucursalExiste)
-                    return new Response<List<ColaboradoresPorSucursalDto>>{ Exitoso = false, Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal")};
+                    return new Response<List<ColaboradoresPorSucursalDto>> { Exitoso = false, Mensaje = Mensajes.NO_EXISTE.Replace("@Entidad", "Sucursal") };
 
                 var colaboradoresEnSucursal = await _unitOfWork.Repository<ColaboradoresPorSucursal>().AsQueryable()
                     .Where(cs => cs.SucursalId == sucursalId && cs.Estado)
                     .Select(cs => new
                     { cs.ColaboradorId, cs.DistanciaKm }).ToListAsync();
 
-                if (!colaboradoresEnSucursal.Any() || sucursalId == 0)
+                if (colaboradoresEnSucursal.Count == 0 || sucursalId == 0)
                 {
                     return new Response<List<ColaboradoresPorSucursalDto>>
                     {
@@ -310,10 +305,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     .Where(c => colaboradoresEnSucursalIds.Contains(c.ColaboradorId) && !colaboradoresEnViaje.Contains(c.ColaboradorId))
                     .ToListAsync();
 
-                    var distanciasDict = colaboradoresEnSucursal.ToDictionary(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
+                var distanciasDict = colaboradoresEnSucursal.ToDictionary(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
 
                 var colaboradoresDto = _mapper.Map<List<ColaboradoresPorSucursalDto>>(colaboradoresDisponibles, opt => opt.Items["Distancias"] = distanciasDict);
-                if (!colaboradoresDto.Any())
+                if (colaboradoresDto.Count == 0)
                 {
                     return new Response<List<ColaboradoresPorSucursalDto>>
                     {
@@ -350,7 +345,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                     .ToListAsync();
 
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<ColaboradoresDto>>
                     {
@@ -392,7 +387,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             bool estadoCivilExiste = await DatabaseHelper.ExisteRegistroEnBD<EstadosCiviles>(_unitOfWorkBuilder, e => e.EstadoCivilId == colaborador.EstadoCivilId);
             bool cargoExiste = await DatabaseHelper.ExisteRegistroEnBD<Cargos>(_unitOfWorkBuilder, c => c.CargoId == colaborador.CargoId);
             bool ciudadExiste = await DatabaseHelper.ExisteRegistroEnBD<Ciudades>(_unitOfWorkBuilder, c => c.CiudadId == colaborador.CiudadId);
-            bool usuarioExiste = await DatabaseHelper.ExisteRegistroEnBD<Usuarios>(_unitOfWorkBuilder, u=> u.UsuarioId == colaborador.UsuarioCreacionId);
+            bool usuarioExiste = await DatabaseHelper.ExisteRegistroEnBD<Usuarios>(_unitOfWorkBuilder, u => u.UsuarioId == colaborador.UsuarioCreacionId);
 
             var sucursalIds = colaborador.ColaboradoresPorSucursal.Select(s => s.SucursalId).Distinct().ToList();
             var sucursalesExistentes = await _unitOfWork.Repository<Sucursales>()
@@ -425,7 +420,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
             {
                 _unitOfWork.Repository<Colaboradores>().Add(colaboradorEntidad);
 
-                if (!await _unitOfWork.SaveChangesAsync()) 
+                if (!await _unitOfWork.SaveChangesAsync())
                 {
                     await _unitOfWork.RollBackAsync();
                     return new Response<Colaboradores>
@@ -445,10 +440,10 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 });
 
                 _unitOfWork.Repository<ColaboradoresPorSucursal>().AddRange(sucursalesAsignadas);
-                if (!await _unitOfWork.SaveChangesAsync()) 
+                if (!await _unitOfWork.SaveChangesAsync())
                 {
                     await _unitOfWork.RollBackAsync();
-                    return new Response<Colaboradores>{ Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")};
+                    return new Response<Colaboradores> { Exitoso = false, Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "el").Replace("@entidad", "colaborador") };
                 }
 
                 await _unitOfWork.CommitAsync();
@@ -465,7 +460,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General
                 return new Response<Colaboradores>
                 {
                     Exitoso = false,
-                    Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "colaborador")
+                    Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "el").Replace("@entidad", "colaborador")
                 };
             }
         }

@@ -1,11 +1,14 @@
-﻿using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
 {
     [ExcludeFromCodeCoverage]
     public class ViajeDto
     {
+        public ViajeDto()
+        {
+            Colaboradores = new List<ViajeDetallesDto>();
+        }
         public DateTime FechaHora { get; set; }
         public int SucursalId { get; set; }
         public int TransportistaId { get; set; }

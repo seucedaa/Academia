@@ -1,7 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Academia.SIMOVIA.WebAPI._Features.Viaje;
+﻿using Academia.SIMOVIA.WebAPI._Features.Viaje;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.General;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Academia.SIMOVIA.WebAPI.Controllers.Viaje
 {

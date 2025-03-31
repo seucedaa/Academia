@@ -5,13 +5,12 @@ using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Acceso;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.General;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase
 {
-    public class SIMOVIAContext : DbContext
+    public class SimoviaContext : DbContext
     {
-        public SIMOVIAContext(DbContextOptions<SIMOVIAContext> options) : base(options)
+        public SimoviaContext(DbContextOptions<SimoviaContext> options) : base(options)
         {
 
         }

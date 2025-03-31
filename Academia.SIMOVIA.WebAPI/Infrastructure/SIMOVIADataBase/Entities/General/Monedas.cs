@@ -11,7 +11,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
             Nombre = string.Empty;
             Simbolo = string.Empty;
             Estado = true;
-
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
             MonedasPorPais = new HashSet<MonedasPorPais>();
         }
 
@@ -26,6 +27,6 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
 
         public virtual Usuarios UsuarioCreacion { get; set; }
         public virtual Usuarios UsuarioModificacion { get; set; }
-        public virtual ICollection<MonedasPorPais> MonedasPorPais { get;set; }
+        public virtual ICollection<MonedasPorPais> MonedasPorPais { get; set; }
     }
 }

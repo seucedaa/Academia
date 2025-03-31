@@ -15,7 +15,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure
 
         public IUnitOfWork BuildDbSIMOVIA()
         {
-            var dbContext = _serviceProvider.GetRequiredService<SIMOVIAContext>();
+            var dbContext = _serviceProvider.GetRequiredService<SimoviaContext>();
             return new UnitOfWork(dbContext);
         }
     }

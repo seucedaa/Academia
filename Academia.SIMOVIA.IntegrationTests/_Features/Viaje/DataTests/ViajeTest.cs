@@ -1,6 +1,4 @@
 ﻿using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
-using System;
-using System.Collections.Generic;
 
 namespace Academia.SIMOVIA.IntegrationTests._Features.Viaje.DataTests
 {

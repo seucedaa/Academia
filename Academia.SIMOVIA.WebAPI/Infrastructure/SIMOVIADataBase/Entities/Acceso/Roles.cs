@@ -1,8 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
+﻿namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
 {
-    [ExcludeFromCodeCoverage]
     public class Roles
     {
         public Roles()
@@ -21,10 +18,10 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso
         public DateTime? FechaModificacion { get; set; }
         public bool Estado { get; set; }
 
-        public virtual Usuarios UsuarioCreacion { get; set; }
-        public virtual Usuarios UsuarioModificacion { get; set; }
-        public virtual ICollection<PantallasPorRoles> PantallasPorRoles { get; set; }
-        public virtual ICollection<Usuarios> Usuarios { get; set; }
-        
+        public virtual Usuarios? UsuarioCreacion { get; set; }
+        public virtual Usuarios? UsuarioModificacion { get; set; }
+        public virtual ICollection<PantallasPorRoles>? PantallasPorRoles { get; set; }
+        public virtual ICollection<Usuarios>? Usuarios { get; set; }
+
     }
 }

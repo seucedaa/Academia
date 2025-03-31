@@ -18,6 +18,12 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
             DireccionExacta = string.Empty;
             Estado = true;
 
+            EstadoCivil = new EstadosCiviles();
+            Ciudad = new Ciudades();
+            Cargo = new Cargos();
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
+
             Usuarios = new HashSet<Usuarios>();
             ColaboradoresPorSucursal = new HashSet<ColaboradoresPorSucursal>();
             ViajesDetalle = new HashSet<ViajesDetalle>();
@@ -43,7 +49,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
         public DateTime? FechaModificacion { get; set; }
         public bool Estado { get; set; }
 
-        public virtual EstadosCiviles EstadoCivil { get;set; }
+        public virtual EstadosCiviles EstadoCivil { get; set; }
         public virtual Ciudades Ciudad { get; set; }
         public virtual Cargos Cargo { get; set; }
         public virtual Usuarios UsuarioCreacion { get; set; }

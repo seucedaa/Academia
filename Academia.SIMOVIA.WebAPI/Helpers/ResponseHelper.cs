@@ -1,6 +1,4 @@
-﻿using Azure;
-
-namespace Academia.SIMOVIA.WebAPI.Helpers
+﻿namespace Academia.SIMOVIA.WebAPI.Helpers
 {
     public static class ResponseHelper
     {

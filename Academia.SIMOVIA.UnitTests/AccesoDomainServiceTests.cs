@@ -2,14 +2,7 @@
 using Academia.SIMOVIA.WebAPI._Features.Acceso;
 using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
-using Academia.SIMOVIA.WebAPI.Utilities;
 using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Academia.SIMOVIA.UnitTests
 {
@@ -27,11 +20,11 @@ namespace Academia.SIMOVIA.UnitTests
         {
             var resultado = _accesoDomainService.ValidarInicioSesion(login, usuario);
 
+            resultado.Mensaje ??= "";
             Assert.Equal(esperadoExito, resultado.Exitoso);
-            Assert.Equal(esperadoMensaje, resultado.Mensaje);
+            Assert.Equal(esperadoMensaje, resultado.Mensaje ?? "");
 
-            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje });
-
+            resultado.Should().BeEquivalentTo(new { Exitoso = esperadoExito, Mensaje = esperadoMensaje ?? "" });
         }
     }
 }

@@ -1,11 +1,7 @@
 ﻿
-using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.Acceso;
 using Academia.SIMOVIA.WebAPI._Features.General;
 using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Academia.SIMOVIA.WebAPI._Features.Viaje;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
 
 namespace Academia.SIMOVIA.WebAPI.Controllers.General
 {
@@ -23,7 +19,7 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
         public async Task<IActionResult> ObtenerColaboradores()
         {
             var resultado = await _generalService.ObtenerColaboradores();
-            return resultado.Exitoso ? Ok(resultado) :  BadRequest(resultado.Mensaje);
+            return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
 
         [HttpGet("ObtenerColaborador/{colaboradorId}")]
@@ -54,11 +50,5 @@ namespace Academia.SIMOVIA.WebAPI.Controllers.General
             var resultado = await _generalService.RegistrarColaborador(colaboradorDto);
             return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
         }
-        //[HttpPost("ActualizarSucursalesAsignadas")]
-        //public async Task<IActionResult> ActualizarSucursalesAsignadas([FromBody] ColaboradorPorSucursalDto colaboradorPorSucursalDto)
-        //{
-        //    var resultado = await _generalService.ActualizarSucursalesAsignadas(colaboradorPorSucursalDto);
-        //    return resultado.Exitoso ? Ok(resultado) : BadRequest(resultado.Mensaje);
-        //}
     }
 }

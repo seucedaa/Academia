@@ -1,26 +1,16 @@
-﻿using Academia.SIMOVIA.WebAPI._Features.Acceso.Dtos;
-using Academia.SIMOVIA.WebAPI._Features.Acceso;
-using Academia.SIMOVIA.WebAPI._Features.General;
-using Academia.SIMOVIA.WebAPI._Features.General.Dtos;
+﻿using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
+using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements.Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 using Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos;
 using Academia.SIMOVIA.WebAPI.Helpers;
 using Academia.SIMOVIA.WebAPI.Infrastructure;
-using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Acceso;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.General;
 using Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje;
 using Academia.SIMOVIA.WebAPI.Utilities;
 using AutoMapper;
 using Farsiman.Domain.Core.Standard.Repositories;
-using Farsiman.Infraestructure.Core.Entity.Standard;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using System.Globalization;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.Enums;
-using System.Linq.Expressions;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
-using Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements.Academia.SIMOVIA.WebAPI._Features.Viaje.DomainRequirements;
 
 namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 {
@@ -31,7 +21,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
         private readonly ViajeDomainService _viajeDomainService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUbicacionService _ubicacionService;
-        public ViajeService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, ViajeDomainService viajeDomainService, IUnitOfWork unitOfWork,IUbicacionService ubicacionService)
+        public ViajeService(UnitOfWorkBuilder unitOfWorkBuilder, IMapper mapper, ViajeDomainService viajeDomainService, IUnitOfWork unitOfWork, IUbicacionService ubicacionService)
         {
             _unitOfWorkBuilder = unitOfWorkBuilder;
             _mapper = mapper;
@@ -40,7 +30,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             _ubicacionService = ubicacionService;
         }
         #region Sucursales
-        public async Task<Response<List<SucursalesListadoDto>>> ObtenerSucursales()
+        public async Task<Response<List<SucursalesDto>>> ObtenerSucursales()
         {
             try
             {
@@ -49,18 +39,18 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                  .Include(c => c.Ciudad)
                  .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
-                    return new Response<List<SucursalesListadoDto>>
+                    return new Response<List<SucursalesDto>>
                     {
                         Exitoso = false,
                         Mensaje = Mensajes.SIN_REGISTROS.Replace("@entidad", "sucursales")
                     };
                 }
 
-                var sucursalesDto = _mapper.Map<List<SucursalesListadoDto>>(listado);
+                var sucursalesDto = _mapper.Map<List<SucursalesDto>>(listado);
 
-                return new Response<List<SucursalesListadoDto>>
+                return new Response<List<SucursalesDto>>
                 {
                     Exitoso = true,
                     Data = sucursalesDto,
@@ -69,7 +59,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             }
             catch (DbUpdateException)
             {
-                return new Response<List<SucursalesListadoDto>>
+                return new Response<List<SucursalesDto>>
                 {
                     Exitoso = false,
                     Mensaje = Mensajes.ERROR_LISTA.Replace("@entidad", "sucursales")
@@ -77,7 +67,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             }
             catch (Exception)
             {
-                return new Response<List<SucursalesListadoDto>>
+                return new Response<List<SucursalesDto>>
                 {
                     Exitoso = false,
                     Mensaje = Mensajes.ERROR_GENERAL
@@ -86,8 +76,8 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
         }
         public async Task<Response<List<SucursalesDto>>> ObtenerSucursalesCercanas(decimal latitud, decimal longitud)
         {
-            
-            var validacion = _viajeDomainService.ValidarUbicacion(latitud,longitud);
+
+            var validacion = _viajeDomainService.ValidarUbicacion(latitud, longitud);
             if (!validacion.Exitoso)
                 return validacion;
 
@@ -99,7 +89,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     .Include(c => c.Ciudad)
                     .ToListAsync();
 
-                if (!sucursales.Any())
+                if (sucursales.Count == 0)
                 {
                     return new Response<List<SucursalesDto>>
                     {
@@ -110,7 +100,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
                 DistanceMatrixApiResponseDto googleResponse = await _ubicacionService.ObtenerDistanciasSucursales(latitud, longitud, sucursales);
 
-                if (googleResponse?.rows == null || !googleResponse.rows.Any() || googleResponse.rows[0].elements == null)
+                if (googleResponse?.rows == null || googleResponse.rows.Count == 0 || googleResponse.rows[0].elements == null)
                 {
                     return new Response<List<SucursalesDto>>
                     {
@@ -120,21 +110,25 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 }
 
                 List<SucursalesDto> sucursalesCercanas = sucursales
-                    .Select((sucursal, index) =>
-                    {
-                        ElementoDto elemento = googleResponse.rows[0].elements[index];
-                        return elemento.status == "OK" && elemento.distance != null
-                               ? new { Sucursal = sucursal, DistanciaKm = Math.Round(elemento.distance.value / 1000.0, 1) }
-                               : null;
-                    }).Where(s => s != null && s.DistanciaKm > 0 && s.DistanciaKm <= 50)
-                    .Select(s =>
-                    {
-                        SucursalesDto dto = _mapper.Map<SucursalesDto>(s.Sucursal);
-                        dto.DistanciaKm = s.DistanciaKm;
-                        return dto;
-                    }).ToList();
+                 .Select((sucursal, index) =>
+                 {
+                     ElementoDto elemento = googleResponse.rows[0].elements[index];
 
-                if (!sucursalesCercanas.Any())
+                     if (elemento.status != "OK" || elemento.distance == null)
+                         return null;
+
+                     return new { Sucursal = sucursal, DistanciaKm = Math.Round(elemento.distance.value / 1000.0, 1) };
+                 })
+                 .Where(s => s is not null && s.Sucursal is not null && s.DistanciaKm > 0 && s.DistanciaKm <= 50)
+                 .Select(s =>
+                 {
+                     SucursalesDto dto = _mapper.Map<SucursalesDto>(s!.Sucursal!);
+                     dto.DistanciaKm = s.DistanciaKm;
+                     return dto;
+                 })
+                 .ToList();
+
+                if (sucursalesCercanas.Count == 0)
                 {
                     return new Response<List<SucursalesDto>>
                     {
@@ -165,11 +159,11 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
             try
             {
                 var listado = await _unitOfWork.Repository<Sucursales>().AsQueryable()
-                    .Where(c => c.Estado && sucursalesIds.Contains(c.SucursalId)) 
+                    .Where(c => c.Estado && sucursalesIds.Contains(c.SucursalId))
                     .Include(c => c.Ciudad)
                     .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<SucursalesDto>>
                     {
@@ -302,7 +296,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                  .Include(v => v.Transportista)
                  .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<ViajesDto>>
                     {
@@ -432,12 +426,21 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     .Select(c => new { c.ColaboradorId, c.Latitud, c.Longitud })
                     .ToListAsync();
 
-                if (!colaboradores.Any())
+                if (colaboradores.Count == 0)
                     return new Response<ViajesEncabezado> { Exitoso = false, Mensaje = Mensajes.CAMPOS_OBLIGATORIOS.Replace("@Campos", "Colaboradores") };
 
                 decimal distanciaTotalKm = 0;
                 int totalColaboradores = colaboradores.Count;
                 int maximoSolicitudes = 25;
+
+                if (sucursal == null)
+                {
+                    return new Response<ViajesEncabezado>
+                    {
+                        Exitoso = false,
+                        Mensaje = Mensajes.INGRESAR_VALIDA.Replace("@campo", "sucursal")
+                    };
+                }
 
                 for (int i = 0; i < totalColaboradores; i += maximoSolicitudes)
                 {
@@ -453,6 +456,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
 
                     distanciaTotalKm += distanciaCantidad;
                 }
+
                 var transportistaTarifa = await _unitOfWork.Repository<Transportistas>().AsQueryable().Where(t => t.TransportistaId == viajeEntidad.TransportistaId)
                     .Select(t => t.Tarifa)
                     .FirstOrDefaultAsync();
@@ -471,7 +475,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     return new Response<ViajesEncabezado>
                     {
                         Exitoso = false,
-                        Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo","el").Replace("@entidad", "viaje")
+                        Mensaje = Mensajes.ERROR_CREAR.Replace("@articulo", "el").Replace("@entidad", "viaje")
                     };
                 }
 
@@ -571,7 +575,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     })
                 .ToListAsync();
 
-            if (!colaboradores.Any())
+            if (colaboradores.Count == 0)
             {
                 return new Response<RutaViajeDto>
                 {
@@ -585,14 +589,20 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 .Where(cs => cs.SucursalId == viaje.SucursalId && colaboradores.Select(c => c.ColaboradorId).Contains(cs.ColaboradorId))
                 .ToDictionaryAsync(cs => cs.ColaboradorId, cs => cs.DistanciaKm);
 
-            var waypoints = colaboradores.Select(c => new WaypointDto
+            var waypoints = colaboradores.Select(c =>
             {
-                Colaborador = c.Colaborador,
-                Latitud = c.Latitud,
-                Longitud = c.Longitud,
-                DistanciaKm = distanciasDict.ContainsKey(c.ColaboradorId) ? distanciasDict[c.ColaboradorId] : null, 
-                DireccionExacta = c.DireccionExacta
+                distanciasDict.TryGetValue(c.ColaboradorId, out var distancia);
+
+                return new WaypointDto
+                {
+                    Colaborador = c.Colaborador,
+                    Latitud = c.Latitud,
+                    Longitud = c.Longitud,
+                    DistanciaKm = distancia,
+                    DireccionExacta = c.DireccionExacta
+                };
             }).ToList();
+
 
             var ruta = new RutaViajeDto
             {
@@ -619,7 +629,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                  .Include(v => v.Transportista)
                  .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<ViajesDto>>
                     {
@@ -637,16 +647,18 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     Data = viajesDto
                 };
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException x)
             {
+                Console.WriteLine(x.ToString());
                 return new Response<List<ViajesDto>>
                 {
                     Exitoso = false,
                     Mensaje = Mensajes.ERROR_LISTA.Replace("@entidad", "viajes")
                 };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.ToString());
                 return new Response<List<ViajesDto>>
                 {
                     Exitoso = false,
@@ -680,7 +692,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                     .Where(v => v.DistanciaTotalKm < 100)
                     .ToList();
 
-                if (!viajesFiltrados.Any())
+                if (viajesFiltrados.Count == 0)
                 {
                     return new Response<List<ViajesDto>>
                     {
@@ -722,7 +734,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                 .ThenInclude(mp => mp.Moneda)
                 .ToListAsync();
 
-                if (!listado.Any())
+                if (listado.Count == 0)
                 {
                     return new Response<List<TransportistasDto>>
                     {
@@ -797,8 +809,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.Viaje
                                    where viajeEncabezado.FechaHora.Date >= fechaInicio.Date
                                          && viajeEncabezado.FechaHora.Date <= fechaFin.Date
                                          && viajeEncabezado.TransportistaId == transportistaId
-                                         && monedaPorPais.Principal == true  
-                                         && viajeEncabezado.Estado == true
+                                         && monedaPorPais.Principal && viajeEncabezado.Estado
                                    orderby viajeEncabezado.FechaHora descending
                                    select new
                                    {

@@ -88,7 +88,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Acceso
             #endregion
 
             #region Relaciones uno a muchos
-            
+
 
 
             builder.HasMany(x => x.Notificaciones)

@@ -10,7 +10,9 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
         {
             Codigo = string.Empty;
             Descripcion = string.Empty;
-
+            Pais = new Paises();
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
             Ciudades = new HashSet<Ciudades>();
         }
 

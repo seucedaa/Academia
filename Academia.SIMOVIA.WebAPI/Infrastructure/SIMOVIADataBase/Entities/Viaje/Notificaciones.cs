@@ -10,6 +10,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         {
             Titulo = string.Empty;
             Descripcion = string.Empty;
+            Receptor = new Usuarios();
+            Solicitud = new Solicitudes();
         }
 
         public int NotificacionId { get; set; }

@@ -30,10 +30,10 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.Viaje
 
             builder.Property(x => x.ViajeEncabezadoId)
                    .HasColumnName("ViajeEncabezado_Id")
-                   .IsRequired(false); 
+                   .IsRequired(false);
             builder.Property(x => x.SucursalId)
                    .HasColumnName("Sucursal_Id")
-                   .IsRequired(); 
+                   .IsRequired();
 
             builder.Property(x => x.EstadoSolicitudId)
                    .HasColumnName("EstadoSolicitud_Id")

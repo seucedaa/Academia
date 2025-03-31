@@ -12,6 +12,11 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
             ViajesDetalle = new HashSet<ViajesDetalle>();
             Puntuaciones = new HashSet<Puntuaciones>();
             Solicitudes = new HashSet<Solicitudes>();
+
+            Sucursal = new Sucursales();
+            Transportista = new Transportistas();
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
         }
 
         public int ViajeEncabezadoId { get; set; }
@@ -32,7 +37,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         public virtual Usuarios UsuarioCreacion { get; set; }
         public virtual Usuarios UsuarioModificacion { get; set; }
         public virtual ICollection<ViajesDetalle> ViajesDetalle { get; set; }
-        public virtual ICollection<Puntuaciones> Puntuaciones { get;set; }
-        public virtual ICollection<Solicitudes> Solicitudes { get;set; }
+        public virtual ICollection<Puntuaciones> Puntuaciones { get; set; }
+        public virtual ICollection<Solicitudes> Solicitudes { get; set; }
     }
 }

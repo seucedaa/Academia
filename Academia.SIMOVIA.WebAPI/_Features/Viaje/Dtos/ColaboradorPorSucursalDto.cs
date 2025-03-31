@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
+﻿namespace Academia.SIMOVIA.WebAPI._Features.Viaje.Dtos
 {
     public class ColaboradorPorSucursalDto
     {

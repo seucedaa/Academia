@@ -10,6 +10,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Viaje
         {
             Descripcion = string.Empty;
             Estado = true;
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
 
             Solicitudes = new HashSet<Solicitudes>();
         }

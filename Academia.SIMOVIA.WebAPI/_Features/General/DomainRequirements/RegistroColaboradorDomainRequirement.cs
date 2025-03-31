@@ -4,6 +4,11 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements
 {
     public class RegistroColaboradorDomainRequirement
     {
+        public RegistroColaboradorDomainRequirement()
+        {
+            SucursalesNoExistentes = new List<int>();
+        }
+
         public static RegistroColaboradorDomainRequirement Fill(
             bool dniExiste,
             bool correoExiste,
@@ -21,7 +26,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements
                 CargoExiste = cargoExiste,
                 CiudadExiste = ciudadExiste,
                 UsuarioExiste = usuarioExiste,
-                SucursalesNoExistentes = sucursalesNoExistentes
+                SucursalesNoExistentes = sucursalesNoExistentes ?? new List<int>()
             };
         }
 
@@ -31,7 +36,7 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements
         public bool CargoExiste { get; set; }
         public bool CiudadExiste { get; set; }
         public bool UsuarioExiste { get; set; }
-        public List<int>? SucursalesNoExistentes { get; set; }
+        public List<int> SucursalesNoExistentes { get; set; }
 
         public List<string> ObtenerErrores()
         {
@@ -44,16 +49,16 @@ namespace Academia.SIMOVIA.WebAPI._Features.General.DomainRequirements
             if (!CiudadExiste) errores.Add(Mensajes.NO_EXISTE.Replace("@Entidad", "Ciudad"));
             if (!UsuarioExiste) errores.Add(Mensajes.NO_EXISTE.Replace("@Entidad", "Usuario"));
 
-            if (SucursalesNoExistentes.Any())
+            if (SucursalesNoExistentes.Count > 0)
             {
-                errores.Add(SucursalesNoExistentes.Count == 1 ? Mensajes.NO_EXISTE.Replace("@Entidad", $"Sucursal ID {SucursalesNoExistentes.First()}")
+                errores.Add(SucursalesNoExistentes.Count == 1
+                    ? Mensajes.NO_EXISTE.Replace("@Entidad", $"Sucursal ID {SucursalesNoExistentes.First()}")
                     : Mensajes.CAMPOS_NO_EXISTEN.Replace("@Campos", $"Sucursales ID {string.Join(", ", SucursalesNoExistentes)}"));
             }
 
             return errores;
         }
 
-        public bool EsValido() => !ObtenerErrores().Any();
+        public bool EsValido() => ObtenerErrores().Count == 0;
     }
-
 }

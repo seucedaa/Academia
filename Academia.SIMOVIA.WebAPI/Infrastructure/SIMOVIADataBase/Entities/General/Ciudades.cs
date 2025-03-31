@@ -12,6 +12,9 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
             Codigo = string.Empty;
             Descripcion = string.Empty;
 
+            Estado = new Estados();
+            UsuarioCreacion = new Usuarios();
+
             Colaboradores = new HashSet<Colaboradores>();
             Sucursales = new HashSet<Sucursales>();
             Transportistas = new HashSet<Transportistas>();
@@ -28,8 +31,8 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
 
         public virtual Estados Estado { get; set; }
         public virtual Usuarios UsuarioCreacion { get; set; }
-        public virtual Usuarios UsuarioModificacion { get; set; }
-        public virtual ICollection<Colaboradores> Colaboradores { get; set;}
+        public virtual Usuarios? UsuarioModificacion { get; set; }
+        public virtual ICollection<Colaboradores> Colaboradores { get; set; }
         public virtual ICollection<Sucursales> Sucursales { get; set; }
         public virtual ICollection<Transportistas> Transportistas { get; set; }
     }

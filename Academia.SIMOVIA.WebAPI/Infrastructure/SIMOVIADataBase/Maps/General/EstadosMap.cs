@@ -47,17 +47,17 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Maps.General
 
             #region Relaciones uno a muchos
             builder.HasOne(x => x.Pais)
-                   .WithMany(p => p.Estados) 
+                   .WithMany(p => p.Estados)
                    .HasForeignKey(x => x.PaisId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.UsuarioCreacion)
-                   .WithMany(u => u.EstadosCreados) 
+                   .WithMany(u => u.EstadosCreados)
                    .HasForeignKey(x => x.UsuarioCreacionId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.UsuarioModificacion)
-                   .WithMany(u => u.EstadosModificados) 
+                   .WithMany(u => u.EstadosModificados)
                    .HasForeignKey(x => x.UsuarioModificacionId)
                    .OnDelete(DeleteBehavior.Restrict);
             #endregion

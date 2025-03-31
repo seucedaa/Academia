@@ -6,11 +6,14 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
     [ExcludeFromCodeCoverage]
     public class EstadosCiviles
     {
-        public EstadosCiviles() { 
+        public EstadosCiviles()
+        {
             Descripcion = string.Empty;
             Estado = true;
+            UsuarioCreacion = new Usuarios();
+            UsuarioModificacion = new Usuarios();
 
-            Colaboradores = new HashSet<Colaboradores>();  
+            Colaboradores = new HashSet<Colaboradores>();
         }
         public int EstadoCivilId { get; set; }
         public string Descripcion { get; set; }
@@ -21,7 +24,7 @@ namespace Academia.SIMOVIA.WebAPI.Infrastructure.SIMOVIADataBase.Entities.Genera
         public bool Estado { get; set; }
 
         public virtual Usuarios UsuarioCreacion { get; set; }
-        public virtual Usuarios UsuarioModificacion{ get; set; }
+        public virtual Usuarios UsuarioModificacion { get; set; }
         public virtual ICollection<Colaboradores> Colaboradores { get; set; }
     }
 }
